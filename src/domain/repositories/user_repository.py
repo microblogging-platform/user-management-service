@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
-from typing import Optional
+from typing import Optional, List, Protocol
 
 from ..entities.user import User
 from ..value_objects import Email
 
 
-class UserRepository(ABC):
+class UserRepository(Protocol):
 
     @abstractmethod
     async def create(self, user: User) -> User:
@@ -22,6 +22,10 @@ class UserRepository(ABC):
 
     @abstractmethod
     async def get_by_email(self, email: Email) -> Optional[User]:
+        pass
+
+    @abstractmethod
+    async def get_by_group_id(self, group_id: UUID) -> List[User]:
         pass
 
     @abstractmethod
