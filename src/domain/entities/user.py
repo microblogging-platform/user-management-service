@@ -1,13 +1,8 @@
 import datetime
 from dataclasses import dataclass
-from enum import Enum
 from uuid import UUID
+from ..enums import Role
 from ..value_objects import Email, PhoneNumber
-
-class Role(Enum):
-    USER = "USER"
-    ADMIN = "ADMIN"
-    MODERATOR = "MODERATOR"
 
 
 @dataclass
