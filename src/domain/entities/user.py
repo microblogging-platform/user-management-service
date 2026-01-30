@@ -1,13 +1,12 @@
 import datetime
-from dataclasses import dataclass
-from uuid import UUID
+from dataclasses import dataclass, field
+from uuid import UUID, uuid4
 from ..enums import Role
 from ..value_objects import Email, PhoneNumber
 
 
 @dataclass
 class User:
-    id: UUID
     name: str
     surname: str
     username: str
@@ -17,7 +16,9 @@ class User:
     role: Role
     image_s3_path: str
     is_blocked: bool
-    created_at: datetime
-    modified_at: datetime
+    id: UUID = field(default_factory=uuid4)
+    created_at: datetime = field(default_factory=datetime.now)
+    modified_at: datetime = field(default_factory=datetime.now)
+
 
 
