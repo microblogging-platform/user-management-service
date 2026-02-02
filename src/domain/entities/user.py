@@ -1,26 +1,21 @@
-import datetime
-from dataclasses import dataclass, field
-from typing import Optional
 from uuid import UUID, uuid4
-from ..enums import Role
-from ..value_objects import Email, PhoneNumber
+from typing import Optional
+from pydantic import Field, EmailStr, ConfigDict
+from pydantic_extra_types.phone_numbers import PhoneNumber
+from domain.mixins import TimestampMixin
+from domain.enums import Role
 
-
-@dataclass
-class User:
-    name: str
-    surname: str
-    username: str
+class User(TimestampMixin):
+    id: UUID = Field(default_factory=uuid4)
+    name: str = Field(min_length=1)
+    surname: str = Field(min_length=1)
+    username: str = Field(min_length=3)
     password_hash: str
+    email: EmailStr
     phone_number: PhoneNumber
-    email: Email
     role: Role
     image_s3_path: str
     is_blocked: bool
-    id: UUID = field(default_factory=uuid4)
     group_id: Optional[UUID] = None
-    created_at: datetime = field(default_factory=datetime.now)
-    modified_at: datetime = field(default_factory=datetime.now)
 
-
-
+    model_config = ConfigDict(from_attributes=True)

@@ -1,10 +1,7 @@
-import datetime
-from dataclasses import dataclass
-from uuid import UUID
+from uuid import UUID, uuid4
+from pydantic import Field
+from domain.mixins import TimestampMixin
 
-
-@dataclass
-class Group:
-    id: UUID
-    name: str
-    created_at: datetime
+class Group(TimestampMixin):
+    id: UUID = Field(default_factory=uuid4)
+    name: str = Field(min_length=1)
