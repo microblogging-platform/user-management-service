@@ -2,35 +2,88 @@ from typing import Optional, List
 from uuid import UUID
 
 from pydantic import EmailStr
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from domain.entities import User
 from domain.repositories import UserRepository
+from infrastructure.db.mappers import user_mapper
+from infrastructure.db.models import UserModel
 
 
 class SqlAlchemyUserRepository(UserRepository):
+    def __init__(self, session: AsyncSession):
+        self._session = session
+        self._mapper = user_mapper
+
     async def create(self, user: User) -> User:
-        pass
+        user_model = self._mapper.to_model(user)
+        self._session.add(user_model)
+        await self._session.flush()
+        await self._session.refresh(user_model)
+        return self._mapper.to_domain(user_model)
 
     async def get_by_id(self, user_id: UUID) -> Optional[User]:
-        pass
+        stmt = select(UserModel).where(UserModel.id == user_id)
+        result = await self._session.execute(stmt)
+        user_model = result.scalar_one_or_none()
+        return self._mapper.to_domain(user_model) if user_model else None
 
     async def get_by_username(self, username: str) -> Optional[User]:
-        pass
+        stmt = select(UserModel).where(UserModel.username == username)
+        result = await self._session.execute(stmt)
+        user_model = result.scalar_one_or_none()
+        return self._mapper.to_domain(user_model) if user_model else None
 
     async def get_by_email(self, email: EmailStr) -> Optional[User]:
-        pass
+        stmt = select(UserModel).where(UserModel.email == str(email))
+        result = await self._session.execute(stmt)
+        user_model = result.scalar_one_or_none()
+        return self._mapper.to_domain(user_model) if user_model else None
 
     async def get_by_group_id(self, group_id: UUID) -> List[User]:
-        pass
+        stmt = select(UserModel).where(UserModel.group_id == group_id)
+        result = await self._session.execute(stmt)
+        user_models = result.scalars().all()
+        return [self._mapper.to_domain(model) for model in user_models]
 
     async def update(self, user: User) -> User:
-        pass
+        stmt = select(UserModel).where(UserModel.id == user.id)
+        result = await self._session.execute(stmt)
+        user_model = result.scalar_one_or_none()
+
+        if not user_model:
+            raise ValueError(f"User with id {user.id} not found")
+
+        user_model.name = user.name
+        user_model.surname = user.surname
+        user_model.username = user.username
+        user_model.phone_number = str(user.phone_number)
+        user_model.email = str(user.email)
+        user_model.role = user.role
+        user_model.image_s3_path = user.image_s3_path
+        user_model.is_blocked = user.is_blocked
+        user_model.group_id = user.group_id
+
+        await self._session.flush()
+        await self._session.refresh(user_model)
+        return self._mapper.to_domain(user_model)
 
     async def delete(self, user_id: UUID) -> None:
-        pass
+        stmt = select(UserModel).where(UserModel.id == user_id)
+        result = await self._session.execute(stmt)
+        user_model = result.scalar_one_or_none()
+
+        if user_model:
+            await self._session.delete(user_model)
+            await self._session.flush()
 
     async def exists_by_username(self, username: str) -> bool:
-        pass
+        stmt = select(UserModel.id).where(UserModel.username == username).limit(1)
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none() is not None
 
     async def exists_by_email(self, email: EmailStr) -> bool:
-        pass
+        stmt = select(UserModel.id).where(UserModel.email == str(email)).limit(1)
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none() is not None
