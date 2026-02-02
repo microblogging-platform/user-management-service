@@ -25,7 +25,6 @@ async def signup(
 
         await session.commit()
 
-        # Вместо перечисления всех полей:
         return SignupResponse.model_validate(user_dto)
 
     except UserAlreadyExistsError as e:
