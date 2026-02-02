@@ -1,8 +1,8 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from uuid import UUID
 from typing import Optional, List, Protocol
 
-from ..entities.group import Group
+from domain.entities import Group
 
 
 class GroupRepository(Protocol):

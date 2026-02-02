@@ -1,10 +1,8 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 from typing import Optional, List, Protocol
-
-from ..entities.user import User
-from ..value_objects import Email
-
+from pydantic import EmailStr
+from domain.entities import User
 
 class UserRepository(Protocol):
 
@@ -21,7 +19,7 @@ class UserRepository(Protocol):
         pass
 
     @abstractmethod
-    async def get_by_email(self, email: Email) -> Optional[User]:
+    async def get_by_email(self, email: EmailStr) -> Optional[User]:
         pass
 
     @abstractmethod
@@ -41,5 +39,5 @@ class UserRepository(Protocol):
         pass
 
     @abstractmethod
-    async def exists_by_email(self, email: Email) -> bool:
+    async def exists_by_email(self, email: EmailStr) -> bool:
         pass
