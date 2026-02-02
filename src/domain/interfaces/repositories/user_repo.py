@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
-from typing import Optional, List, Protocol
+from typing import Optional, List
 from pydantic import EmailStr
 from domain.entities import User
 
-class IUserRepository(Protocol):
+class IUserRepository(ABC):
 
     @abstractmethod
     async def create(self, user: User) -> User:

@@ -1,11 +1,11 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 from uuid import UUID
-from typing import Optional, List, Protocol
+from typing import Optional, List
 
 from domain.entities import Group
 
 
-class IGroupRepository(Protocol):
+class IGroupRepository(ABC):
 
     @abstractmethod
     async def create(self, group: Group) -> Group:

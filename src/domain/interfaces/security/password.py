@@ -1,8 +1,6 @@
-from abc import abstractmethod
-from typing import Protocol
+from abc import abstractmethod, ABC
 
-
-class IPasswordHasher(Protocol):
+class IPasswordHasher(ABC):
 
     @abstractmethod
     def hash(self, password: str) -> str:

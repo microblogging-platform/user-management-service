@@ -12,6 +12,7 @@ class PyJWTService(ITokenService):
         self.secret_key = settings.jwt_secret_key
         self.algorithm = settings.jwt_algorithm
         self.access_token_expire_minutes = settings.access_token_expire_minutes
+        self.refresh_token_expire_minutes = settings.refresh_token_expire_minutes
 
     def create_access_token(self, data: Dict[str, Any], expires_delta: int | None = None) -> str:
         to_encode = data.copy()
@@ -30,7 +31,7 @@ class PyJWTService(ITokenService):
         return encoded_jwt
 
     def create_refresh_token(self, data: Dict[str, Any], expires_delta: int | None = None) -> str:
-        return self.create_access_token(data, expires_delta=settings.refresh_token_expire_minutes)
+        return self.create_access_token(data, expires_delta=self.refresh_token_expire_minutes)
 
     def decode_token(self, token: str) -> Dict[str, Any]:
         try:
