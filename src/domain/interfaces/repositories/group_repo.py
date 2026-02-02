@@ -5,7 +5,7 @@ from typing import Optional, List, Protocol
 from domain.entities import Group
 
 
-class GroupRepository(Protocol):
+class IGroupRepository(Protocol):
 
     @abstractmethod
     async def create(self, group: Group) -> Group:

@@ -4,7 +4,7 @@ from typing import Optional, List, Protocol
 from pydantic import EmailStr
 from domain.entities import User
 
-class UserRepository(Protocol):
+class IUserRepository(Protocol):
 
     @abstractmethod
     async def create(self, user: User) -> User:

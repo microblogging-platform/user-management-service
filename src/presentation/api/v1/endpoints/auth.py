@@ -6,7 +6,7 @@ from infrastructure.db import get_db_session
 from domain.entities import User
 from domain.enums import Role
 from domain.exceptions import DomainValidationError
-from domain.repositories import UserRepository
+from domain.interfaces.repositories import IUserRepository
 from ..schemas.auth import SignupRequest, SignupResponse
 from ..dependencies import get_user_repository, hash_password
 
@@ -16,7 +16,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 @router.post("/signup", response_model=SignupResponse, status_code=status.HTTP_201_CREATED)
 async def signup(
     request: SignupRequest,
-    user_repo: Annotated[UserRepository, Depends(get_user_repository)],
+    user_repo: Annotated[IUserRepository, Depends(get_user_repository)],
     session: Annotated[AsyncSession, Depends(get_db_session)]
 ) -> SignupResponse:
     if await user_repo.exists_by_username(request.username):

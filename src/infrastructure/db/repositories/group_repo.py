@@ -5,12 +5,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from domain.entities import Group
-from domain.repositories import GroupRepository
+from domain.interfaces.repositories import IGroupRepository
 from infrastructure.db.mappers import group_mapper
 from infrastructure.db.models import GroupModel
 
 
-class SqlAlchemyGroupRepository(GroupRepository):
+class SqlAlchemyGroupRepository(IGroupRepository):
     def __init__(self, session: AsyncSession):
         self._session = session
         self._mapper = group_mapper
