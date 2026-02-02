@@ -6,3 +6,6 @@ class InvalidTokenError(DomainError):
 
 class ExpiredTokenError(DomainError):
     pass
+
+class UserAlreadyExistsError(DomainError):
+    pass

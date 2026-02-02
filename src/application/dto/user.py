@@ -1,19 +1,21 @@
 from uuid import UUID
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from pydantic import BaseModel, EmailStr, ConfigDict
 from pydantic_extra_types.phone_numbers import PhoneNumber
-
 from domain.enums import Role
 
 
-class SignupRequest(BaseModel):
-    name: str = Field(min_length=1, max_length=100)
-    surname: str = Field(min_length=1, max_length=100)
-    username: str = Field(min_length=3, max_length=50)
-    password: str = Field(min_length=8)
+class RegisterUserCommand(BaseModel):
+    name: str
+    surname: str
+    username: str
+    password: str
     email: EmailStr
     phone_number: PhoneNumber
 
-class SignupResponse(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+
+
+class UserDTO(BaseModel):
     id: UUID
     name: str
     surname: str
