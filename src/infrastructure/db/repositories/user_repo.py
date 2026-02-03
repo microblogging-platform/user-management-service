@@ -1,13 +1,11 @@
-from typing import List, Optional
 from uuid import UUID
-
-from domain.entities import User
-from domain.interfaces.repositories import IUserRepository
-from infrastructure.db.mappers import user_mapper
-from infrastructure.db.models import UserModel
 from pydantic import EmailStr
+from domain.entities import User
 from sqlalchemy import or_, select
+from infrastructure.db.models import UserModel
 from sqlalchemy.ext.asyncio import AsyncSession
+from infrastructure.db.mappers import user_mapper
+from domain.interfaces.repositories import IUserRepository
 
 
 class SqlAlchemyUserRepository(IUserRepository):
@@ -22,7 +20,7 @@ class SqlAlchemyUserRepository(IUserRepository):
         await self._session.refresh(user_model)
         return self._mapper.to_domain(user_model)
 
-    async def get_by_id(self, user_id: UUID) -> Optional[User]:
+    async def get_by_id(self, user_id: UUID) -> User | None:
         stmt = select(UserModel).where(UserModel.id == user_id)
         result = await self._session.execute(stmt)
         user_model = result.scalar_one_or_none()
@@ -41,19 +39,19 @@ class SqlAlchemyUserRepository(IUserRepository):
 
         return self._mapper.to_domain(user_model) if user_model else None
 
-    async def get_by_username(self, username: str) -> Optional[User]:
+    async def get_by_username(self, username: str) -> User | None:
         stmt = select(UserModel).where(UserModel.username == username)
         result = await self._session.execute(stmt)
         user_model = result.scalar_one_or_none()
         return self._mapper.to_domain(user_model) if user_model else None
 
-    async def get_by_email(self, email: EmailStr) -> Optional[User]:
+    async def get_by_email(self, email: EmailStr) -> User | None:
         stmt = select(UserModel).where(UserModel.email == str(email))
         result = await self._session.execute(stmt)
         user_model = result.scalar_one_or_none()
         return self._mapper.to_domain(user_model) if user_model else None
 
-    async def get_by_group_id(self, group_id: UUID) -> List[User]:
+    async def get_by_group_id(self, group_id: UUID) -> list[User]:
         stmt = select(UserModel).where(UserModel.group_id == group_id)
         result = await self._session.execute(stmt)
         user_models = result.scalars().all()

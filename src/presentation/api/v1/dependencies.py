@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from application.usecases.auth.login_user import LoginUserUseCase
+from application.usecases.auth.refresh_token import RefreshTokenUseCase
 from application.usecases.auth.register_user import RegisterUserUseCase
 from application.usecases.base import UseCase
 from domain.interfaces.repositories import IGroupRepository, IUserRepository
@@ -48,3 +49,9 @@ async def get_login_use_case(
     token_service: Annotated[ITokenService, Depends(get_jwt_service)],
 ) -> UseCase:
     return LoginUserUseCase(user_repo, password_hasher, token_service)
+
+async def get_refresh_token_use_case(
+    user_repo: Annotated[IUserRepository, Depends(get_user_repository)],
+    token_service: Annotated[ITokenService, Depends(get_jwt_service)],
+) -> UseCase:
+    return RefreshTokenUseCase(user_repo, token_service)
