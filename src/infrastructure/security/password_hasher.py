@@ -2,10 +2,10 @@ from passlib.context import CryptContext
 from domain.interfaces.security import IPasswordHasher
 
 
-class BcryptHasher(IPasswordHasher):
+class Argon2Hasher(IPasswordHasher):
     def __init__(self):
         self._context = CryptContext(
-            schemes=["bcrypt"],
+            schemes=["argon2"],
             deprecated="auto",
         )
 

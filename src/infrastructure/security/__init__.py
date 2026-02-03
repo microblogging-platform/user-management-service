@@ -1,4 +1,4 @@
-from .password_hasher import BcryptHasher
+from .password_hasher import Argon2Hasher
 from .jwt_service import PyJWTService
 
-__all__ = ["BcryptHasher", "PyJWTService"]
+__all__ = ["Argon2Hasher", "PyJWTService"]

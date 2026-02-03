@@ -5,12 +5,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from application.usecases.auth.register_user import RegisterUserUseCase
 from infrastructure.db import get_db_session
 from infrastructure.db.repositories import SqlAlchemyUserRepository, SqlAlchemyGroupRepository
-from infrastructure.security import BcryptHasher
+from infrastructure.security import Argon2Hasher
 from infrastructure.security.jwt_service import PyJWTService
 from domain.interfaces.repositories import IUserRepository, IGroupRepository
 from domain.interfaces.security import IPasswordHasher, ITokenService
 
-_password_hasher = BcryptHasher()
+_password_hasher = Argon2Hasher()
 _jwt_service = PyJWTService()
 
 def get_password_hasher() -> IPasswordHasher:

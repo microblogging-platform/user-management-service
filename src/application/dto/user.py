@@ -1,5 +1,5 @@
 from uuid import UUID
-from pydantic import BaseModel, EmailStr, ConfigDict
+from pydantic import BaseModel, EmailStr, ConfigDict, AwareDatetime
 from pydantic_extra_types.phone_numbers import PhoneNumber
 from domain.enums import Role
 
@@ -23,5 +23,6 @@ class UserDTO(BaseModel):
     email: EmailStr
     phone_number: PhoneNumber
     role: Role
+    created_at: AwareDatetime
 
     model_config = ConfigDict(from_attributes=True)

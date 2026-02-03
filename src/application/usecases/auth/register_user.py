@@ -7,11 +7,7 @@ from domain.exceptions import UserAlreadyExistsError
 
 
 class RegisterUserUseCase:
-    def __init__(
-            self,
-            user_repo: IUserRepository,
-            password_hasher: IPasswordHasher,
-    ):
+    def __init__(self, user_repo: IUserRepository, password_hasher: IPasswordHasher):
         self.user_repo = user_repo
         self.password_hasher = password_hasher
 
