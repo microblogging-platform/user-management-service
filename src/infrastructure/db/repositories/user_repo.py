@@ -28,7 +28,7 @@ class SqlAlchemyUserRepository(IUserRepository):
         user_model = result.scalar_one_or_none()
         return self._mapper.to_domain(user_model) if user_model else None
 
-    async def get_by_login_identifier(self, identifier: str) -> Optional[User]:
+    async def get_by_login_identifier(self, identifier: str) -> User | None:
         stmt = select(UserModel).where(
             or_(
                 UserModel.email == identifier,

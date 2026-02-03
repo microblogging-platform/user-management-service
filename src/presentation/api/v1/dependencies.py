@@ -15,7 +15,6 @@ from infrastructure.security import Argon2Hasher
 from infrastructure.security.jwt_service import PyJWTService
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
 def get_password_hasher() -> IPasswordHasher:
     return Argon2Hasher()
 
