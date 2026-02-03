@@ -77,13 +77,13 @@ async def login(
 
     except InvalidCredentialsError as e:
         await session.rollback()
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=e.message) from e
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=e.message, headers={"WWW-Authenticate": "Bearer"},) from e
     except DomainError as e:
         logging.error(f"Error while logging in: {e}", exc_info=True)
         await session.rollback()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message) from e
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message, headers={"WWW-Authenticate": "Bearer"},) from e
     except Exception as e:
-        logging.error(f"Error while logging in: {e}", exc_info=True)
+        logging.error(f"Error while logging in: {e}", exc_info=True, headers={"WWW-Authenticate": "Bearer"},)
         await session.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
