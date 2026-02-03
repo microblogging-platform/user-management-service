@@ -1,6 +1,6 @@
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
+from typing import List, Optional
 from uuid import UUID
-from typing import Optional, List
 
 from domain.entities import Group
 

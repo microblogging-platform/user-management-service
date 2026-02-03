@@ -1,12 +1,13 @@
+from application.dto.user import RegisterUserCommand, UserDTO
+from application.usecases.base import UseCase
 from domain.entities import User
 from domain.enums import Role
+from domain.exceptions import UserAlreadyExistsError
 from domain.interfaces.repositories import IUserRepository
 from domain.interfaces.security import IPasswordHasher
-from application.dto.user import RegisterUserCommand, UserDTO
-from domain.exceptions import UserAlreadyExistsError
 
 
-class RegisterUserUseCase:
+class RegisterUserUseCase(UseCase):
     def __init__(self, user_repo: IUserRepository, password_hasher: IPasswordHasher):
         self.user_repo = user_repo
         self.password_hasher = password_hasher
@@ -31,7 +32,7 @@ class RegisterUserUseCase:
             role=Role.USER,
             image_s3_path="",
             is_blocked=False,
-            group_id=None
+            group_id=None,
         )
 
         created_user = await self.user_repo.create(new_user)

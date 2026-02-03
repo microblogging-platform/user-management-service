@@ -1,9 +1,9 @@
-import jwt
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
 
+import jwt
+from domain.exceptions import ExpiredTokenError, InvalidTokenError
 from domain.interfaces.security import ITokenService
-from domain.exceptions import InvalidTokenError, ExpiredTokenError
 from infrastructure.config import settings
 
 
@@ -14,24 +14,37 @@ class PyJWTService(ITokenService):
         self.access_token_expire_minutes = settings.access_token_expire_minutes
         self.refresh_token_expire_minutes = settings.refresh_token_expire_minutes
 
-    def create_access_token(self, data: Dict[str, Any], expires_delta: int | None = None) -> str:
+    def create_access_token(
+        self, data: Dict[str, Any], expires_delta: int | None = None
+    ) -> str:
+        return self._create_token(
+            data=data,
+            token_type="access",
+            expires_delta=expires_delta or self.access_token_expire_minutes,
+        )
+
+    def create_refresh_token(
+        self, data: Dict[str, Any], expires_delta: int | None = None
+    ) -> str:
+        return self._create_token(
+            data=data,
+            token_type="refresh",
+            expires_delta=expires_delta or self.refresh_token_expire_minutes,
+        )
+
+    def _create_token(
+        self, data: Dict[str, Any], token_type: str, expires_delta: int
+    ) -> str:
         to_encode = data.copy()
 
-        if expires_delta:
-            expire = datetime.now(timezone.utc) + timedelta(minutes=expires_delta)
-        else:
-            expire = datetime.now(timezone.utc) + timedelta(minutes=self.access_token_expire_minutes)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=expires_delta)
 
-        to_encode.update({
-            "exp": expire,
-            "iat": datetime.now(timezone.utc)
-        })
+        to_encode.update(
+            {"exp": expire, "iat": datetime.now(timezone.utc), "type": token_type}
+        )
 
         encoded_jwt = jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
         return encoded_jwt
-
-    def create_refresh_token(self, data: Dict[str, Any], expires_delta: int | None = None) -> str:
-        return self.create_access_token(data, expires_delta=self.refresh_token_expire_minutes)
 
     def decode_token(self, token: str) -> Dict[str, Any]:
         try:

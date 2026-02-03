@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
+from typing import List, Optional
 from uuid import UUID
-from typing import Optional, List
-from pydantic import EmailStr
+
 from domain.entities import User
+from pydantic import EmailStr
+
 
 class IUserRepository(ABC):
 
@@ -20,6 +22,10 @@ class IUserRepository(ABC):
 
     @abstractmethod
     async def get_by_email(self, email: EmailStr) -> Optional[User]:
+        pass
+
+    @abstractmethod
+    async def get_by_login_identifier(self, identifier: str) -> Optional[User]:
         pass
 
     @abstractmethod

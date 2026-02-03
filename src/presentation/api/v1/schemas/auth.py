@@ -1,8 +1,8 @@
 from uuid import UUID
-from pydantic import BaseModel, EmailStr, Field, ConfigDict, AwareDatetime
-from pydantic_extra_types.phone_numbers import PhoneNumber
 
 from domain.enums import Role
+from pydantic import AwareDatetime, BaseModel, ConfigDict, EmailStr, Field
+from pydantic_extra_types.phone_numbers import PhoneNumber
 
 
 class SignupRequest(BaseModel):
@@ -12,6 +12,7 @@ class SignupRequest(BaseModel):
     password: str = Field(min_length=8)
     email: EmailStr
     phone_number: PhoneNumber
+
 
 class SignupResponse(BaseModel):
     id: UUID
@@ -24,3 +25,14 @@ class SignupResponse(BaseModel):
     created_at: AwareDatetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class LoginRequest(BaseModel):
+    login: str
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"

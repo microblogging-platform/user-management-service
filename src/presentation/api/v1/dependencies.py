@@ -1,39 +1,51 @@
 from typing import Annotated
-from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from application.usecases.auth.login_user import LoginUserUseCase
 from application.usecases.auth.register_user import RegisterUserUseCase
+from application.usecases.base import UseCase
+from domain.interfaces.repositories import IGroupRepository, IUserRepository
+from domain.interfaces.security import IPasswordHasher, ITokenService
+from fastapi import Depends
 from infrastructure.db import get_db_session
-from infrastructure.db.repositories import SqlAlchemyUserRepository, SqlAlchemyGroupRepository
+from infrastructure.db.repositories import (
+    SqlAlchemyGroupRepository,
+    SqlAlchemyUserRepository,
+)
 from infrastructure.security import Argon2Hasher
 from infrastructure.security.jwt_service import PyJWTService
-from domain.interfaces.repositories import IUserRepository, IGroupRepository
-from domain.interfaces.security import IPasswordHasher, ITokenService
+from sqlalchemy.ext.asyncio import AsyncSession
 
-_password_hasher = Argon2Hasher()
-_jwt_service = PyJWTService()
 
 def get_password_hasher() -> IPasswordHasher:
-    return _password_hasher
+    return Argon2Hasher()
+
 
 def get_jwt_service() -> ITokenService:
-    return _jwt_service
+    return PyJWTService()
 
 
 async def get_user_repository(
-    session: Annotated[AsyncSession, Depends(get_db_session)]
+    session: Annotated[AsyncSession, Depends(get_db_session)],
 ) -> IUserRepository:
     return SqlAlchemyUserRepository(session)
 
 
 async def get_group_repository(
-    session: Annotated[AsyncSession, Depends(get_db_session)]
+    session: Annotated[AsyncSession, Depends(get_db_session)],
 ) -> IGroupRepository:
     return SqlAlchemyGroupRepository(session)
+
 
 async def get_register_user_use_case(
     user_repo: Annotated[IUserRepository, Depends(get_user_repository)],
     password_hasher: Annotated[IPasswordHasher, Depends(get_password_hasher)],
-) -> RegisterUserUseCase:
+) -> UseCase:
     return RegisterUserUseCase(user_repo, password_hasher)
 
+
+async def get_login_use_case(
+    user_repo: Annotated[IUserRepository, Depends(get_user_repository)],
+    password_hasher: Annotated[IPasswordHasher, Depends(get_password_hasher)],
+    token_service: Annotated[ITokenService, Depends(get_jwt_service)],
+) -> UseCase:
+    return LoginUserUseCase(user_repo, password_hasher, token_service)

@@ -1,14 +1,13 @@
-from typing import Optional, List
+from typing import List, Optional
 from uuid import UUID
-
-from pydantic import EmailStr
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from domain.entities import User
 from domain.interfaces.repositories import IUserRepository
 from infrastructure.db.mappers import user_mapper
 from infrastructure.db.models import UserModel
+from pydantic import EmailStr
+from sqlalchemy import or_, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class SqlAlchemyUserRepository(IUserRepository):
@@ -27,6 +26,19 @@ class SqlAlchemyUserRepository(IUserRepository):
         stmt = select(UserModel).where(UserModel.id == user_id)
         result = await self._session.execute(stmt)
         user_model = result.scalar_one_or_none()
+        return self._mapper.to_domain(user_model) if user_model else None
+
+    async def get_by_login_identifier(self, identifier: str) -> Optional[User]:
+        stmt = select(UserModel).where(
+            or_(
+                UserModel.email == identifier,
+                UserModel.username == identifier,
+                UserModel.phone_number == identifier,
+            )
+        )
+        result = await self._session.execute(stmt)
+        user_model = result.scalar_one_or_none()
+
         return self._mapper.to_domain(user_model) if user_model else None
 
     async def get_by_username(self, username: str) -> Optional[User]:

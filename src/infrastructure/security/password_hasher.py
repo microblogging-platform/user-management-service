@@ -1,5 +1,5 @@
-from passlib.context import CryptContext
 from domain.interfaces.security import IPasswordHasher
+from passlib.context import CryptContext
 
 
 class Argon2Hasher(IPasswordHasher):

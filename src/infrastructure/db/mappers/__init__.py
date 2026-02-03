@@ -1,6 +1,6 @@
-from .user import user_mapper, UserMapper
-from .group import group_mapper, GroupMapper
 from .base import BaseMapper
+from .group import GroupMapper, group_mapper
+from .user import UserMapper, user_mapper
 
 __all__ = [
     "BaseMapper",
@@ -9,4 +9,3 @@ __all__ = [
     "user_mapper",
     "group_mapper",
 ]
-
