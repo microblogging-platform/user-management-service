@@ -18,6 +18,6 @@ class User(TimestampMixin):
     role: Role
     image_s3_path: str
     is_blocked: bool
-    group_id: Optional[UUID] = None
+    group_id: UUID | None = None
 
     model_config = ConfigDict(from_attributes=True)

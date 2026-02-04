@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from typing import List, Optional
 from uuid import UUID
 
+from pydantic_extra_types.phone_numbers import PhoneNumber
+
 from domain.entities import User
 from pydantic import EmailStr
 
@@ -25,7 +27,7 @@ class IUserRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_by_login_identifier(self, identifier: str) -> Optional[User]:
+    async def get_by_login_identifier(self, identifier: str | EmailStr | PhoneNumber) -> Optional[User]:
         pass
 
     @abstractmethod

@@ -1,5 +1,8 @@
+from datetime import datetime
 from uuid import UUID
 from pydantic import EmailStr
+from pydantic_extra_types.phone_numbers import PhoneNumber
+
 from domain.entities import User
 from sqlalchemy import or_, select
 from infrastructure.db.models import UserModel
@@ -26,7 +29,7 @@ class SqlAlchemyUserRepository(IUserRepository):
         user_model = result.scalar_one_or_none()
         return self._mapper.to_domain(user_model) if user_model else None
 
-    async def get_by_login_identifier(self, identifier: str) -> User | None:
+    async def get_by_login_identifier(self, identifier: str | EmailStr | PhoneNumber) -> User | None:
         stmt = select(UserModel).where(
             or_(
                 UserModel.email == identifier,
@@ -60,24 +63,18 @@ class SqlAlchemyUserRepository(IUserRepository):
     async def update(self, user: User) -> User:
         stmt = select(UserModel).where(UserModel.id == user.id)
         result = await self._session.execute(stmt)
-        user_model = result.scalar_one_or_none()
-
-        if not user_model:
-            raise ValueError(f"User with id {user.id} not found")
+        user_model = result.scalar_one()
 
         user_model.name = user.name
         user_model.surname = user.surname
         user_model.username = user.username
-        user_model.phone_number = str(user.phone_number)
         user_model.email = str(user.email)
-        user_model.role = user.role
-        user_model.image_s3_path = user.image_s3_path
-        user_model.is_blocked = user.is_blocked
-        user_model.group_id = user.group_id
+        user_model.phone_number = user.phone_number
+        user_model.modified_at = user.modified_at
 
         await self._session.flush()
-        await self._session.refresh(user_model)
-        return self._mapper.to_domain(user_model)
+
+        return user_mapper.to_domain(user_model)
 
     async def delete(self, user_id: UUID) -> None:
         stmt = select(UserModel).where(UserModel.id == user_id)

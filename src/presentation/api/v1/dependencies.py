@@ -1,12 +1,20 @@
 from typing import Annotated
+from uuid import UUID
+
+from fastapi.security import OAuth2PasswordBearer
+from starlette import status
 
 from application.usecases.auth.login_user import LoginUserUseCase
 from application.usecases.auth.refresh_token import RefreshTokenUseCase
 from application.usecases.auth.register_user import RegisterUserUseCase
 from application.usecases.base import UseCase
+from application.usecases.users.delete_user import DeleteUserUseCase
+from application.usecases.users.get_current_user import GetCurrentUserUseCase
+from application.usecases.users.update_user import UpdateUserUseCase
+from domain.exceptions import InvalidTokenError, ExpiredTokenError
 from domain.interfaces.repositories import IGroupRepository, IUserRepository
 from domain.interfaces.security import IPasswordHasher, ITokenService
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from infrastructure.db import get_db_session
 from infrastructure.db.repositories import (
     SqlAlchemyGroupRepository,
@@ -16,12 +24,28 @@ from infrastructure.security import Argon2Hasher
 from infrastructure.security.jwt_service import PyJWTService
 from sqlalchemy.ext.asyncio import AsyncSession
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
+
 def get_password_hasher() -> IPasswordHasher:
     return Argon2Hasher()
 
 
 def get_jwt_service() -> ITokenService:
     return PyJWTService()
+
+async def get_current_user_id(
+        token: Annotated[str, Depends(oauth2_scheme)],
+        token_service: Annotated[ITokenService, Depends(get_jwt_service)],
+) -> UUID:
+    try:
+        return token_service.get_user_id_from_token(token)
+
+    except (InvalidTokenError, ExpiredTokenError) as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=e.message,
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 
 async def get_user_repository(
@@ -55,3 +79,18 @@ async def get_refresh_token_use_case(
     token_service: Annotated[ITokenService, Depends(get_jwt_service)],
 ) -> UseCase:
     return RefreshTokenUseCase(user_repo, token_service)
+
+async def get_current_user_use_case(
+    user_repo: Annotated[IUserRepository, Depends(get_user_repository)],
+) -> UseCase:
+    return GetCurrentUserUseCase(user_repo)
+
+async def get_update_user_use_case(
+    user_repo: Annotated[IUserRepository, Depends(get_user_repository)],
+) -> UseCase:
+    return UpdateUserUseCase(user_repo)
+
+async def get_delete_user_use_case(
+    user_repo: Annotated[IUserRepository, Depends(get_user_repository)],
+) -> UseCase:
+    return DeleteUserUseCase(user_repo)

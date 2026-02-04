@@ -1,4 +1,4 @@
-from application.dto.user import LoginCommand, TokenResponse
+from application.dto.auth import LoginCommand, TokenResponse
 from application.usecases.base import UseCase
 from domain.exceptions import InvalidCredentialsError, UserBlockedError
 from domain.interfaces.repositories import IUserRepository

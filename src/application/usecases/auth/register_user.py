@@ -1,4 +1,5 @@
-from application.dto.user import RegisterUserCommand, UserDTO
+from application.dto.auth import RegisterUserCommand
+from application.dto.user import UserDTO
 from application.usecases.base import UseCase
 from domain.entities import User
 from domain.enums import Role

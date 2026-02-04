@@ -1,20 +1,17 @@
 from uuid import UUID
 
-from domain.enums import Role
-from pydantic import AwareDatetime, BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, Field, EmailStr, AwareDatetime, ConfigDict
 from pydantic_extra_types.phone_numbers import PhoneNumber
 
+from domain.enums import Role
 
-class RegisterUserCommand(BaseModel):
-    name: str
-    surname: str
-    username: str
-    password: str
-    email: EmailStr
-    phone_number: PhoneNumber
 
-    model_config = ConfigDict(extra="forbid")
-
+class UpdateUserCommand(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    surname: str | None = Field(default=None, min_length=1, max_length=100)
+    username: str | None = Field(default=None, min_length=3, max_length=50)
+    phone_number: PhoneNumber | None = None
+    email: EmailStr | None = None
 
 class UserDTO(BaseModel):
     id: UUID
@@ -23,22 +20,8 @@ class UserDTO(BaseModel):
     username: str
     email: EmailStr
     phone_number: PhoneNumber
+    image_s3_path: str
     role: Role
     created_at: AwareDatetime
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class LoginCommand(BaseModel):
-    login: str
-    password: str
-
-    model_config = ConfigDict(extra="forbid")
-
-
-class TokenResponse(BaseModel):
-    access_token: str
-    refresh_token: str
-    token_type: str = "bearer"
 
     model_config = ConfigDict(from_attributes=True)

@@ -3,7 +3,7 @@ from typing import Annotated
 
 from fastapi.security import OAuth2PasswordRequestForm
 
-from application.dto.user import LoginCommand, RegisterUserCommand
+from application.dto.auth import LoginCommand, RegisterUserCommand
 from application.usecases.base import UseCase
 from domain.exceptions import (
     DomainError,

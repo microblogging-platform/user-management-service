@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
+from uuid import UUID
 
 import jwt
 from domain.exceptions import ExpiredTokenError, InvalidTokenError
@@ -55,3 +56,11 @@ class PyJWTService(ITokenService):
             raise ExpiredTokenError("Token has expired")
         except jwt.PyJWTError as e:
             raise InvalidTokenError(f"Could not validate credentials: {str(e)}")
+
+    def get_user_id_from_token(self, token: str, expected_type: str = "access") -> UUID:
+        payload = self.decode_token(token)
+
+        if payload.get("type") != expected_type:
+            raise InvalidTokenError(f"Token type must be '{expected_type}'")
+
+        return payload.get("sub")

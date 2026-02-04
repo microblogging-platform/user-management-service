@@ -16,6 +16,10 @@ class UserAlreadyExistsError(DomainError):
     pass
 
 
+class UserDoesNotExistsError(DomainError):
+    pass
+
+
 class InvalidCredentialsError(DomainError):
     pass
 

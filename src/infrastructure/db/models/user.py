@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID, uuid4
 
@@ -8,6 +8,8 @@ from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+def utc_now():
+    datetime.now(timezone.utc)
 
 class UserModel(Base):
     __tablename__ = "users"
@@ -47,13 +49,15 @@ class UserModel(Base):
     )
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=datetime.now, nullable=False
+        DateTime(timezone=True),
+        default=utc_now,
+        nullable=False
     )
 
     modified_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.now,
-        onupdate=datetime.now,
+        default=utc_now,
+        onupdate=utc_now,
         nullable=False,
     )
 
