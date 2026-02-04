@@ -1,3 +1,3 @@
-from .auth import SignupRequest, SignupResponse
+from .auth import SignupRequest
 
-__all__ = ["SignupRequest", "SignupResponse"]
+__all__ = ["SignupRequest"]

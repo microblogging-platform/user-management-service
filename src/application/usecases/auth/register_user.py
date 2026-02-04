@@ -1,5 +1,4 @@
 from application.dto.auth import RegisterUserCommand
-from application.dto.user import UserDTO
 from application.usecases.base import UseCase
 from domain.entities import User
 from domain.enums import Role
@@ -13,7 +12,7 @@ class RegisterUserUseCase(UseCase):
         self.user_repo = user_repo
         self.password_hasher = password_hasher
 
-    async def execute(self, command: RegisterUserCommand) -> UserDTO:
+    async def execute(self, command: RegisterUserCommand) -> None:
 
         if await self.user_repo.exists_by_username(command.username):
             raise UserAlreadyExistsError(f"Username {command.username} already exists")
@@ -36,6 +35,4 @@ class RegisterUserUseCase(UseCase):
             group_id=None,
         )
 
-        created_user = await self.user_repo.create(new_user)
-
-        return UserDTO.model_validate(created_user)
+        await self.user_repo.create(new_user)

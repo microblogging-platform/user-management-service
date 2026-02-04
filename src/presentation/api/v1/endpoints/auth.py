@@ -18,7 +18,6 @@ from presentation.api.v1.dependencies import (
 )
 from presentation.api.v1.schemas.auth import (
     SignupRequest,
-    SignupResponse,
     TokenResponse,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,20 +25,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/signup", response_model=SignupResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/signup", status_code=status.HTTP_201_CREATED)
 async def signup(
     request: SignupRequest,
     use_case: Annotated[UseCase, Depends(get_register_user_use_case)],
     session: Annotated[AsyncSession, Depends(get_db_session)],
-) -> SignupResponse:
+):
     command = RegisterUserCommand(**request.model_dump())
 
     try:
-        user_dto = await use_case.execute(command)
-
+        await use_case.execute(command)
         await session.commit()
-
-        return SignupResponse.model_validate(user_dto)
 
     except UserAlreadyExistsError as e:
         await session.rollback()

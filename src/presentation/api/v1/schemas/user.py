@@ -1,5 +1,9 @@
-from pydantic import BaseModel, EmailStr
+from uuid import UUID
+
+from pydantic import BaseModel, EmailStr, AwareDatetime, ConfigDict
 from pydantic_extra_types.phone_numbers import PhoneNumber
+
+from domain.enums import Role
 
 
 class UpdateUserRequest(BaseModel):
@@ -8,3 +12,16 @@ class UpdateUserRequest(BaseModel):
     username: str | None = None
     phone_number: PhoneNumber | None = None
     email: EmailStr | None = None
+
+class UserResponse(BaseModel):
+    id: UUID
+    name: str
+    surname: str
+    username: str
+    email: EmailStr
+    phone_number: PhoneNumber
+    image_s3_path: str
+    role: Role
+    created_at: AwareDatetime
+
+    model_config = ConfigDict(from_attributes=True)

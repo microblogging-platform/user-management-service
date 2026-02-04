@@ -13,20 +13,6 @@ class SignupRequest(BaseModel):
     email: EmailStr
     phone_number: PhoneNumber
 
-
-class SignupResponse(BaseModel):
-    id: UUID
-    name: str
-    surname: str
-    username: str
-    email: EmailStr
-    phone_number: PhoneNumber
-    role: Role
-    created_at: AwareDatetime
-
-    model_config = ConfigDict(from_attributes=True)
-
-
 class LoginRequest(BaseModel):
     login: str
     password: str
