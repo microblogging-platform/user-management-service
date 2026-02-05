@@ -19,19 +19,11 @@ class IUserRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_by_username(self, username: str) -> Optional[User]:
+    async def get_by_login_identifier(self, identifier: str | EmailStr | PhoneNumber) -> User | None:
         pass
 
     @abstractmethod
-    async def get_by_email(self, email: EmailStr) -> Optional[User]:
-        pass
-
-    @abstractmethod
-    async def get_by_login_identifier(self, identifier: str | EmailStr | PhoneNumber) -> Optional[User]:
-        pass
-
-    @abstractmethod
-    async def get_by_group_id(self, group_id: UUID) -> List[User]:
+    async def get_by_group_id(self, group_id: UUID) -> list[User]:
         pass
 
     @abstractmethod
@@ -49,3 +41,16 @@ class IUserRepository(ABC):
     @abstractmethod
     async def exists_by_email(self, email: EmailStr) -> bool:
         pass
+
+    @abstractmethod
+    async def get_all(
+            self,
+            limit: int,
+            offset: int,
+            filter_by_name: str | None = None,
+            sort_by: str | None = None,
+            order_by: str = "asc",
+            group_id: UUID | None = None
+    ) -> tuple[list[User], int]:
+        pass
+

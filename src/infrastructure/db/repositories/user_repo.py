@@ -4,7 +4,7 @@ from pydantic import EmailStr
 from pydantic_extra_types.phone_numbers import PhoneNumber
 
 from domain.entities import User
-from sqlalchemy import or_, select
+from sqlalchemy import or_, select, asc, desc, func
 from infrastructure.db.models import UserModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from infrastructure.db.mappers import user_mapper
@@ -94,3 +94,38 @@ class SqlAlchemyUserRepository(IUserRepository):
         stmt = select(UserModel.id).where(UserModel.email == str(email)).limit(1)
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none() is not None
+
+    async def get_all(
+            self,
+            limit: int,
+            offset: int,
+            filter_by_name: str | None = None,
+            sort_by: str | None = None,
+            order_by: str = "asc",
+            group_id: UUID | None = None
+    ) -> tuple[list[User], int]:
+
+        query = select(UserModel) if group_id is None else select(UserModel).where(UserModel.group_id == group_id)
+
+        if filter_by_name:
+            search = f"%{filter_by_name}%"
+            query = query.where(
+                or_(
+                    UserModel.name.ilike(search),
+                    UserModel.surname.ilike(search)
+                )
+            )
+
+        count_query = select(func.count()).select_from(query.subquery())
+        total_result = await self._session.execute(count_query)
+        total = total_result.scalar_one()
+
+        column = getattr(UserModel, sort_by) if sort_by and hasattr(UserModel, sort_by) else UserModel.created_at
+        query = query.order_by(desc(column)) if order_by == "desc" else query.order_by(asc(column))
+
+        query = query.limit(limit).offset(offset)
+
+        result = await self._session.execute(query)
+        users = result.scalars().all()
+
+        return [user_mapper.to_domain(user) for user in users], total

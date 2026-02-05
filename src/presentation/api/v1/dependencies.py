@@ -11,6 +11,7 @@ from application.usecases.base import UseCase
 from application.usecases.users.delete_user import DeleteUserUseCase
 from application.usecases.users.get_current_user import GetCurrentUserUseCase
 from application.usecases.users.get_user import GetUserByIdUseCase
+from application.usecases.users.get_users import GetUsersUseCase
 from application.usecases.users.update_user import UpdateUserUseCase
 from domain.entities import User
 from domain.exceptions import InvalidTokenError, ExpiredTokenError
@@ -118,3 +119,8 @@ async def get_user_by_id_use_case(
     user_repo: Annotated[IUserRepository, Depends(get_user_repository)],
 ) -> UseCase:
     return GetUserByIdUseCase(user_repo)
+
+async def get_users_list_use_case(
+    user_repo: Annotated[IUserRepository, Depends(get_user_repository)],
+) -> UseCase:
+    return GetUsersUseCase(user_repo)

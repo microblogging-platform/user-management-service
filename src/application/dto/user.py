@@ -1,3 +1,4 @@
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field, EmailStr, AwareDatetime, ConfigDict
@@ -25,3 +26,17 @@ class UserDTO(BaseModel):
     created_at: AwareDatetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class GetUsersQuery(BaseModel):
+    page: int = 1
+    limit: int = 30
+    filter_by_name: str | None = None
+    sort_by: str | None = None
+    order_by: Literal["asc", "desc"] = "asc"
+
+class UsersListResponse(BaseModel):
+    items: list[UserDTO]
+    total: int
+    page: int
+    limit: int
+    pages: int
