@@ -54,12 +54,6 @@ class SqlAlchemyUserRepository(IUserRepository):
         user_model = result.scalar_one_or_none()
         return self._mapper.to_domain(user_model) if user_model else None
 
-    async def get_by_group_id(self, group_id: UUID) -> list[User]:
-        stmt = select(UserModel).where(UserModel.group_id == group_id)
-        result = await self._session.execute(stmt)
-        user_models = result.scalars().all()
-        return [self._mapper.to_domain(model) for model in user_models]
-
     async def update(self, user: User) -> User:
         stmt = select(UserModel).where(UserModel.id == user.id)
         result = await self._session.execute(stmt)

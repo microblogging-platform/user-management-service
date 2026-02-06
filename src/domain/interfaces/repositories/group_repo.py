@@ -12,7 +12,7 @@ class IGroupRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_by_id(self, group_id: UUID) -> Optional[Group]:
+    async def get_by_id(self, group_id: UUID) -> Group | None:
         pass
 
     @abstractmethod
@@ -24,5 +24,5 @@ class IGroupRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_all(self) -> List[Group]:
+    async def get_all(self) -> list[Group]:
         pass

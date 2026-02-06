@@ -23,10 +23,6 @@ class IUserRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_by_group_id(self, group_id: UUID) -> list[User]:
-        pass
-
-    @abstractmethod
     async def update(self, user: User) -> User:
         pass
 

@@ -3,7 +3,6 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import Annotated, Literal
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from application.dto.user import UserDTO, UsersListResponse, GetUsersQuery
@@ -14,7 +13,6 @@ from domain.entities import User
 from domain.exceptions import UserDoesNotExistsError, UserBlockedError, UserAlreadyExistsError, DomainError, \
     ForbiddenError
 from infrastructure.db import get_db_session
-from infrastructure.db.models import UserModel
 from presentation.api.v1.dependencies import get_current_user_use_case, get_current_user_id, get_update_user_use_case, \
     get_delete_user_use_case, get_current_user, get_user_by_id_use_case, get_users_list_use_case
 from presentation.api.v1.schemas.user import UpdateUserRequest, UserResponse
@@ -51,14 +49,18 @@ async def get_me(
 @router.patch("/me", response_model=UserResponse, status_code=status.HTTP_200_OK)
 async def update_me(
         request: UpdateUserRequest,
-        user_id: Annotated[UUID, Depends(get_current_user_id)],
+        current_user: Annotated[User, Depends(get_current_user)],
         use_case: Annotated[UseCase, Depends(get_update_user_use_case)],
         session: Annotated[AsyncSession, Depends(get_db_session)],
 ):
     command = UpdateUserCommand(**request.model_dump(exclude_unset=True))
 
     try:
-        user_dto = await use_case.execute(user_id, command)
+        user_dto = await use_case.execute(
+            user_id=current_user.id,
+            command=command,
+            requester=current_user
+        )
 
         await session.commit()
 
@@ -116,6 +118,35 @@ async def get_user_by_id(
             detail=e.message
         )
 
+@router.patch("/{user_id}", response_model=UserResponse, status_code=status.HTTP_200_OK)
+async def update_user_by_id(
+        user_id: UUID,
+        request: UpdateUserRequest,
+        current_user: Annotated[User, Depends(get_current_user)],
+        use_case: Annotated[UseCase, Depends(get_update_user_use_case)],
+        session: Annotated[AsyncSession, Depends(get_db_session)],
+):
+    command = UpdateUserCommand(**request.model_dump(exclude_unset=True))
+
+    try:
+        user_dto = await use_case.execute(
+            user_id=user_id,
+            command=command,
+            requester=current_user
+        )
+
+        await session.commit()
+        return user_dto
+
+    except ForbiddenError as e:
+        await session.rollback()
+        raise HTTPException(status_code=403, detail=e.message)
+
+    except UserDoesNotExistsError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=e.message
+        )
 
 @router.get("", response_model=UsersListResponse)
 async def get_users(

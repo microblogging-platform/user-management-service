@@ -3,17 +3,28 @@ from datetime import datetime, timezone
 from application.usecases.base import UseCase
 from application.dto.user import UpdateUserCommand, UserDTO
 from domain.interfaces.repositories import IUserRepository
-from domain.exceptions import DomainError, UserAlreadyExistsError
+from domain.entities.user import User
+from domain.enums.roles import Role
+from domain.exceptions import DomainError, UserAlreadyExistsError, ForbiddenError
 
 
 class UpdateUserUseCase(UseCase):
     def __init__(self, user_repo: IUserRepository):
         self.user_repo = user_repo
 
-    async def execute(self, user_id: UUID, command: UpdateUserCommand) -> UserDTO:
+    async def execute(
+            self,
+            user_id: UUID,
+            command: UpdateUserCommand,
+            requester: User
+    ) -> UserDTO:
+
         user = await self.user_repo.get_by_id(user_id)
         if not user:
             raise DomainError("User not found")
+
+        if requester.id != user.id and requester.role != Role.ADMIN:
+            raise ForbiddenError("You can only update your own profile")
 
         if command.username and command.username != user.username:
             if await self.user_repo.get_by_login_identifier(command.username):
