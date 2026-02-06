@@ -8,12 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from application.dto.user import UserDTO, UsersListResponse, GetUsersQuery
 from application.dto.user import UpdateUserCommand
 from application.usecases.base import UseCase
-from application.usecases.users.get_users import GetUsersUseCase
 from domain.entities import User
 from domain.exceptions import UserDoesNotExistsError, UserBlockedError, UserAlreadyExistsError, DomainError, \
     ForbiddenError
 from infrastructure.db import get_db_session
-from presentation.api.v1.dependencies import get_current_user_use_case, get_current_user_id, get_update_user_use_case, \
+from presentation.api.v1.dependencies import get_update_user_use_case, \
     get_delete_user_use_case, get_current_user, get_user_by_id_use_case, get_users_list_use_case, \
     get_initiate_avatar_upload_use_case
 from presentation.api.v1.schemas.user import UpdateUserRequest, UserResponse, AvatarUploadRequest, \
@@ -23,11 +22,16 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 @router.get("/me", response_model=UserDTO)
 async def get_me(
-    user_id: Annotated[UUID, Depends(get_current_user_id)],
-    use_case: Annotated[UseCase, Depends(get_current_user_use_case)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    use_case: Annotated[UseCase, Depends(get_user_by_id_use_case)],
 ):
     try:
-        return await use_case.execute(user_id)
+        user_dto = await use_case.execute(
+            user_id=current_user.id,
+            requester=current_user
+        )
+
+        return user_dto
 
     except UserDoesNotExistsError as e:
         raise HTTPException(
@@ -42,6 +46,7 @@ async def get_me(
         ) from e
 
     except Exception as e:
+        logging.exception(e)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
@@ -84,7 +89,7 @@ async def update_me(
 
 @router.delete("/me", status_code=status.HTTP_200_OK)
 async def delete_me(
-        user_id: Annotated[UUID, Depends(get_current_user_id)],
+        user_id: Annotated[UUID, Depends(get_current_user)],
         use_case: Annotated[UseCase, Depends(get_delete_user_use_case)],
         session: Annotated[AsyncSession, Depends(get_db_session)],
 ):
@@ -105,7 +110,10 @@ async def get_user_by_id(
         use_case: Annotated[UseCase, Depends(get_user_by_id_use_case)],
 ):
     try:
-        user_dto =  await use_case.execute(user_id, current_user)
+        user_dto =  await use_case.execute(
+            user_id=user_id,
+            requester=current_user
+        )
 
         return UserResponse.model_validate(user_dto)
 

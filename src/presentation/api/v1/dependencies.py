@@ -9,7 +9,6 @@ from application.usecases.auth.refresh_token import RefreshTokenUseCase
 from application.usecases.auth.register_user import RegisterUserUseCase
 from application.usecases.base import UseCase
 from application.usecases.users.delete_user import DeleteUserUseCase
-from application.usecases.users.get_current_user import GetCurrentUserUseCase
 from application.usecases.users.get_user import GetUserByIdUseCase
 from application.usecases.users.get_users import GetUsersUseCase
 from application.usecases.users.initiate_avatar_upload import InitiateAvatarUploadUseCase
@@ -39,6 +38,9 @@ def get_password_hasher() -> IPasswordHasher:
 
 def get_jwt_service() -> ITokenService:
     return PyJWTService()
+
+async def get_storage_service() -> IStorageService:
+    return S3Service()
 
 async def get_user_repository(
     session: Annotated[AsyncSession, Depends(get_db_session)],
@@ -105,11 +107,6 @@ async def get_refresh_token_use_case(
 ) -> UseCase:
     return RefreshTokenUseCase(user_repo, token_service)
 
-async def get_current_user_use_case(
-    user_repo: Annotated[IUserRepository, Depends(get_user_repository)],
-) -> UseCase:
-    return GetCurrentUserUseCase(user_repo)
-
 async def get_update_user_use_case(
     user_repo: Annotated[IUserRepository, Depends(get_user_repository)],
 ) -> UseCase:
@@ -122,16 +119,15 @@ async def get_delete_user_use_case(
 
 async def get_user_by_id_use_case(
     user_repo: Annotated[IUserRepository, Depends(get_user_repository)],
+    storage_service: Annotated[IStorageService, Depends(get_storage_service)]
 ) -> UseCase:
-    return GetUserByIdUseCase(user_repo)
+    return GetUserByIdUseCase(user_repo, storage_service)
 
 async def get_users_list_use_case(
     user_repo: Annotated[IUserRepository, Depends(get_user_repository)],
+    storage_service: Annotated[IStorageService, Depends(get_storage_service)]
 ) -> UseCase:
-    return GetUsersUseCase(user_repo)
-
-async def get_storage_service() -> IStorageService:
-    return S3Service()
+    return GetUsersUseCase(user_repo, storage_service)
 
 async def get_initiate_avatar_upload_use_case(
     storage_service: Annotated[IStorageService, Depends(get_storage_service)],

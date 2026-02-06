@@ -54,6 +54,7 @@ class SqlAlchemyUserRepository(IUserRepository):
         user_model = result.scalar_one_or_none()
         return self._mapper.to_domain(user_model) if user_model else None
 
+    # noinspection PyTypeChecker
     async def update(self, user: User) -> User:
         stmt = select(UserModel).where(UserModel.id == user.id)
         result = await self._session.execute(stmt)

@@ -6,11 +6,13 @@ from domain.entities import User
 from domain.enums import Role
 from domain.exceptions import ForbiddenError
 from domain.interfaces.repositories import IUserRepository
+from domain.interfaces.services.storage import IStorageService
 
 
 class GetUsersUseCase(UseCase):
-    def __init__(self, user_repo: IUserRepository):
+    def __init__(self, user_repo: IUserRepository, storage_service: IStorageService):
         self.user_repo = user_repo
+        self.storage_service = storage_service
 
     async def execute(self, query: GetUsersQuery, requester: User) -> UsersListResponse:
         target_group_id = None
@@ -39,13 +41,21 @@ class GetUsersUseCase(UseCase):
 
         pages = math.ceil(total / query.limit) if query.limit > 0 else 0
 
+        user_dtos = []
+        for user in users:
+            dto = UserDTO.model_validate(user)
+
+            if user.image_s3_path:
+                dto.image_s3_path = await self.storage_service.generate_presigned_get_url(user.image_s3_path)
+
+            user_dtos.append(dto)
+
         return UsersListResponse(
-            items=[UserDTO.model_validate(u) for u in users],
+            items=user_dtos,
             total=total,
             page=query.page,
             limit=query.limit,
             pages=pages
         )
-
     def _empty_response(self, query: GetUsersQuery) -> UsersListResponse:
         return UsersListResponse(items=[], total=0, page=query.page, limit=query.limit, pages=0)

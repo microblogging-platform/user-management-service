@@ -1,6 +1,6 @@
 import aioboto3
 from uuid import uuid4
-from typing import BinaryIO
+from typing import BinaryIO, Any, Coroutine
 from botocore.exceptions import ClientError
 
 from domain.interfaces.services.storage import IStorageService
@@ -66,3 +66,22 @@ class S3Service(IStorageService):
             except ClientError as e:
                 print(f"S3 Presigned URL Error: {e}")
                 raise e
+
+    async def generate_presigned_get_url(self, object_key: str, expires_in: int = 3600) -> str | None:
+        if not object_key:
+            return None
+
+        async with self.session.client("s3", **self.aws_config) as s3:
+            try:
+                url = await s3.generate_presigned_url(
+                    ClientMethod='get_object',
+                    Params={
+                        'Bucket': self.bucket_name,
+                        'Key': object_key
+                    },
+                    ExpiresIn=expires_in
+                )
+                return url
+            except Exception as e:
+                print(f"Error generating presigned URL: {e}")
+                return None
