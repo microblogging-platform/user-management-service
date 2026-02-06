@@ -12,6 +12,7 @@ class UpdateUserRequest(BaseModel):
     username: str | None = None
     phone_number: PhoneNumber | None = None
     email: EmailStr | None = None
+    image_s3_path: str | None = None
 
 class UserResponse(BaseModel):
     id: UUID
@@ -25,3 +26,11 @@ class UserResponse(BaseModel):
     created_at: AwareDatetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class AvatarUploadRequest(BaseModel):
+    filename: str
+    content_type: str
+
+class AvatarPresignedUrlResponse(BaseModel):
+    upload_url: str
+    object_key: str

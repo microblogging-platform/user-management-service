@@ -14,8 +14,10 @@ from domain.exceptions import UserDoesNotExistsError, UserBlockedError, UserAlre
     ForbiddenError
 from infrastructure.db import get_db_session
 from presentation.api.v1.dependencies import get_current_user_use_case, get_current_user_id, get_update_user_use_case, \
-    get_delete_user_use_case, get_current_user, get_user_by_id_use_case, get_users_list_use_case
-from presentation.api.v1.schemas.user import UpdateUserRequest, UserResponse
+    get_delete_user_use_case, get_current_user, get_user_by_id_use_case, get_users_list_use_case, \
+    get_initiate_avatar_upload_use_case
+from presentation.api.v1.schemas.user import UpdateUserRequest, UserResponse, AvatarUploadRequest, \
+    AvatarPresignedUrlResponse
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -150,7 +152,7 @@ async def update_user_by_id(
 
 @router.get("", response_model=UsersListResponse)
 async def get_users(
-        use_case: Annotated[GetUsersUseCase, Depends(get_users_list_use_case)],
+        use_case: Annotated[UseCase, Depends(get_users_list_use_case)],
         current_user: Annotated[User, Depends(get_current_user)],
         page: int = Query(1, ge=1),
         limit: int = Query(30, ge=1, le=100),
@@ -171,3 +173,45 @@ async def get_users(
 
     except ForbiddenError as e:
         raise HTTPException(status_code=403, detail=str(e))
+
+
+@router.post("/me/avatar/upload-url", response_model=AvatarPresignedUrlResponse)
+async def get_avatar_upload_url(
+        request: AvatarUploadRequest,
+        current_user: Annotated[User, Depends(get_current_user)],
+        use_case: Annotated[UseCase, Depends(get_initiate_avatar_upload_use_case)],
+):
+    if request.content_type not in ["image/jpeg", "image/png", "image/webp"]:
+        raise HTTPException(status_code=400, detail="Allowed formats: jpeg, png, webp")
+
+    return await use_case.execute(
+        user_id=current_user.id,
+        filename=request.filename,
+        content_type=request.content_type
+    )
+
+
+@router.post("/me/avatar/confirm", response_model=UserDTO)
+async def confirm_avatar_upload(
+        object_key: str,
+        current_user: Annotated[User, Depends(get_current_user)],
+        use_case: Annotated[UseCase, Depends(get_update_user_use_case)],
+        session: Annotated[AsyncSession, Depends(get_db_session)],
+):
+    expected_prefix = f"avatars/{current_user.id}/"
+    if not object_key.startswith(expected_prefix):
+        raise HTTPException(status_code=403, detail="Invalid object key")
+
+    command = UpdateUserCommand(image_s3_path=object_key)
+
+    try:
+        updated_user = await use_case.execute(
+            user_id=current_user.id,
+            command=command,
+            requester=current_user
+        )
+        await session.commit()
+        return updated_user
+    except Exception as e:
+        await session.rollback()
+        raise e

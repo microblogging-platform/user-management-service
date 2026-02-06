@@ -12,12 +12,15 @@ from application.usecases.users.delete_user import DeleteUserUseCase
 from application.usecases.users.get_current_user import GetCurrentUserUseCase
 from application.usecases.users.get_user import GetUserByIdUseCase
 from application.usecases.users.get_users import GetUsersUseCase
+from application.usecases.users.initiate_avatar_upload import InitiateAvatarUploadUseCase
 from application.usecases.users.update_user import UpdateUserUseCase
 from domain.entities import User
 from domain.exceptions import InvalidTokenError, ExpiredTokenError
 from domain.interfaces.repositories import IGroupRepository, IUserRepository
 from domain.interfaces.security import IPasswordHasher, ITokenService
 from fastapi import Depends, HTTPException
+
+from domain.interfaces.services.storage import IStorageService
 from infrastructure.db import get_db_session
 from infrastructure.db.repositories import (
     SqlAlchemyGroupRepository,
@@ -26,6 +29,8 @@ from infrastructure.db.repositories import (
 from infrastructure.security import Argon2Hasher
 from infrastructure.security.jwt_service import PyJWTService
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from infrastructure.services.s3_service import S3Service
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 
@@ -124,3 +129,11 @@ async def get_users_list_use_case(
     user_repo: Annotated[IUserRepository, Depends(get_user_repository)],
 ) -> UseCase:
     return GetUsersUseCase(user_repo)
+
+async def get_storage_service() -> IStorageService:
+    return S3Service()
+
+async def get_initiate_avatar_upload_use_case(
+    storage_service: Annotated[IStorageService, Depends(get_storage_service)],
+) -> UseCase:
+    return InitiateAvatarUploadUseCase(storage_service)

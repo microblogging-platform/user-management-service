@@ -10,12 +10,12 @@ from infrastructure.config import settings
 class S3Service(IStorageService):
     def __init__(self):
         self.session = aioboto3.Session()
-        self.bucket_name = settings.S3_BUCKET_NAME
+        self.bucket_name = settings.s3_bucket_name
 
         self.aws_config = {
-            "aws_access_key_id": settings.AWS_ACCESS_KEY_ID,
-            "aws_secret_access_key": settings.AWS_SECRET_ACCESS_KEY,
-            "region_name": settings.AWS_REGION,
+            "aws_access_key_id": settings.aws_access_key_id,
+            "aws_secret_access_key": settings.aws_secret_access_key,
+            "region_name": settings.aws_region,
         }
 
     async def upload_file(self, file: BinaryIO, filename: str, content_type: str) -> str:
@@ -44,3 +44,25 @@ class S3Service(IStorageService):
                 await s3.delete_object(Bucket=self.bucket_name, Key=file_path)
             except ClientError as e:
                 print(f"S3 Delete Error: {e}")
+
+    async def generate_presigned_upload_url(
+            self,
+            object_key: str,
+            content_type: str,
+            expires_in: int = 3600
+    ) -> str:
+        async with self.session.client("s3", **self.aws_config) as s3:
+            try:
+                url = await s3.generate_presigned_url(
+                    ClientMethod='put_object',
+                    Params={
+                        'Bucket': self.bucket_name,
+                        'Key': object_key,
+                        'ContentType': content_type
+                    },
+                    ExpiresIn=expires_in
+                )
+                return url
+            except ClientError as e:
+                print(f"S3 Presigned URL Error: {e}")
+                raise e

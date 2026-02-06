@@ -10,3 +10,7 @@ class IStorageService(ABC):
     @abstractmethod
     async def delete_file(self, file_path: str):
         pass
+
+    @abstractmethod
+    async def generate_presigned_upload_url(self, object_key: str, content_type: str, expires_in: int = 3600) -> str:
+        pass

@@ -13,6 +13,7 @@ class UpdateUserCommand(BaseModel):
     username: str | None = Field(default=None, min_length=3, max_length=50)
     phone_number: PhoneNumber | None = None
     email: EmailStr | None = None
+    image_s3_path: str | None = None
 
 class UserDTO(BaseModel):
     id: UUID

@@ -65,6 +65,7 @@ class SqlAlchemyUserRepository(IUserRepository):
         user_model.email = str(user.email)
         user_model.phone_number = user.phone_number
         user_model.modified_at = user.modified_at
+        user_model.image_s3_path = user.image_s3_path
 
         await self._session.flush()
 
