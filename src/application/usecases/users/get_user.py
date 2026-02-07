@@ -22,9 +22,7 @@ class GetUserByIdUseCase(UseCase):
         user_dto = UserDTO.model_validate(target_user)
 
         if target_user.image_s3_path:
-            user_dto.image_s3_path = await self._storage_service.generate_presigned_get_url(
-                target_user.image_s3_path
-            )
+            user_dto.image_s3_path = await self._storage_service.generate_presigned_get_url(target_user.image_s3_path)
 
         if requester.role == Role.ADMIN:
             return user_dto

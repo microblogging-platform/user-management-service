@@ -15,6 +15,7 @@ class UpdateUserCommand(BaseModel):
     email: EmailStr | None = None
     image_s3_path: str | None = None
 
+
 class UserDTO(BaseModel):
     id: UUID
     name: str
@@ -28,12 +29,14 @@ class UserDTO(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class GetUsersQuery(BaseModel):
     page: int = 1
     limit: int = 30
     filter_by_name: str | None = None
     sort_by: str | None = None
     order_by: Literal["asc", "desc"] = "asc"
+
 
 class UsersListResponse(BaseModel):
     items: list[UserDTO]

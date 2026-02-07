@@ -40,13 +40,12 @@ class IUserRepository(ABC):
 
     @abstractmethod
     async def get_all(
-            self,
-            limit: int,
-            offset: int,
-            filter_by_name: str | None = None,
-            sort_by: str | None = None,
-            order_by: str = "asc",
-            group_id: UUID | None = None
+        self,
+        limit: int,
+        offset: int,
+        filter_by_name: str | None = None,
+        sort_by: str | None = None,
+        order_by: str = "asc",
+        group_id: UUID | None = None,
     ) -> tuple[list[User], int]:
         pass
-

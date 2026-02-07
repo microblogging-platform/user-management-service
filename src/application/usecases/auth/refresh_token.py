@@ -25,11 +25,7 @@ class RefreshTokenUseCase(UseCase):
         if not user:
             raise InvalidCredentialsError("User no longer exists")
 
-        new_access = self.token_service.create_access_token(
-            data={"sub": str(user.id), "role": user.role.value}
-        )
-        new_refresh = self.token_service.create_refresh_token(
-            data={"sub": str(user.id)}
-        )
+        new_access = self.token_service.create_access_token(data={"sub": str(user.id), "role": user.role.value})
+        new_refresh = self.token_service.create_refresh_token(data={"sub": str(user.id)})
 
         return TokenResponse(access_token=new_access, refresh_token=new_refresh)

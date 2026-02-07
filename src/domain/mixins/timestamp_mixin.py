@@ -4,9 +4,5 @@ from pydantic import AwareDatetime, BaseModel, Field
 
 
 class TimestampMixin(BaseModel):
-    created_at: AwareDatetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
-    modified_at: AwareDatetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    created_at: AwareDatetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    modified_at: AwareDatetime = Field(default_factory=lambda: datetime.now(timezone.utc))

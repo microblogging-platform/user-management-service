@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     app_name: str = "user-management-service"
 
-    #Postgres
+    # Postgres
     postgres_user: str
     postgres_password: str
     postgres_db: str
@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     def database_url(self) -> str:
         return f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
 
-    #Redis
+    # Redis
     redis_host: str
     redis_port: int
     redis_db: int
@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     def redis_url(self) -> str:
         return f"redis://{self.redis_host}:{self.redis_port}/{self.redis_db}"
 
-    #RabbitMQ
+    # RabbitMQ
     rabbitmq_user: str
     rabbitmq_password: str
     rabbitmq_host: str
@@ -39,13 +39,13 @@ class Settings(BaseSettings):
     def rabbitmq_url(self) -> str:
         return f"amqp://{self.rabbitmq_user}:{self.rabbitmq_password}@{self.rabbitmq_host}:{self.rabbitmq_port}/{self.rabbitmq_vhost}"
 
-    #JWT
+    # JWT
     jwt_secret_key: str
     jwt_algorithm: str
     access_token_expire_minutes: int
     refresh_token_expire_minutes: int
 
-    #AWS S3
+    # AWS S3
     aws_access_key_id: str
     aws_secret_access_key: str
     aws_region: str

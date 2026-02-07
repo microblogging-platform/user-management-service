@@ -25,10 +25,7 @@ class S3Service(IStorageService):
         async with self.session.client("s3", **self.aws_config) as s3:
             try:
                 await s3.upload_fileobj(
-                    Fileobj=file,
-                    Bucket=self.bucket_name,
-                    Key=s3_key,
-                    ExtraArgs={"ContentType": content_type}
+                    Fileobj=file, Bucket=self.bucket_name, Key=s3_key, ExtraArgs={"ContentType": content_type}
                 )
                 return s3_key
             except ClientError as e:
@@ -45,22 +42,13 @@ class S3Service(IStorageService):
             except ClientError as e:
                 print(f"S3 Delete Error: {e}")
 
-    async def generate_presigned_upload_url(
-            self,
-            object_key: str,
-            content_type: str,
-            expires_in: int = 3600
-    ) -> str:
+    async def generate_presigned_upload_url(self, object_key: str, content_type: str, expires_in: int = 3600) -> str:
         async with self.session.client("s3", **self.aws_config) as s3:
             try:
                 url = await s3.generate_presigned_url(
-                    ClientMethod='put_object',
-                    Params={
-                        'Bucket': self.bucket_name,
-                        'Key': object_key,
-                        'ContentType': content_type
-                    },
-                    ExpiresIn=expires_in
+                    ClientMethod="put_object",
+                    Params={"Bucket": self.bucket_name, "Key": object_key, "ContentType": content_type},
+                    ExpiresIn=expires_in,
                 )
                 return url
             except ClientError as e:
@@ -74,12 +62,9 @@ class S3Service(IStorageService):
         async with self.session.client("s3", **self.aws_config) as s3:
             try:
                 url = await s3.generate_presigned_url(
-                    ClientMethod='get_object',
-                    Params={
-                        'Bucket': self.bucket_name,
-                        'Key': object_key
-                    },
-                    ExpiresIn=expires_in
+                    ClientMethod="get_object",
+                    Params={"Bucket": self.bucket_name, "Key": object_key},
+                    ExpiresIn=expires_in,
                 )
                 return url
             except Exception as e:

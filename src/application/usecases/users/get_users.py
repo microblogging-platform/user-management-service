@@ -36,7 +36,7 @@ class GetUsersUseCase(UseCase):
             filter_by_name=query.filter_by_name,
             sort_by=query.sort_by,
             order_by=query.order_by,
-            group_id=target_group_id
+            group_id=target_group_id,
         )
 
         pages = math.ceil(total / query.limit) if query.limit > 0 else 0
@@ -50,12 +50,7 @@ class GetUsersUseCase(UseCase):
 
             user_dtos.append(dto)
 
-        return UsersListResponse(
-            items=user_dtos,
-            total=total,
-            page=query.page,
-            limit=query.limit,
-            pages=pages
-        )
+        return UsersListResponse(items=user_dtos, total=total, page=query.page, limit=query.limit, pages=pages)
+
     def _empty_response(self, query: GetUsersQuery) -> UsersListResponse:
         return UsersListResponse(items=[], total=0, page=query.page, limit=query.limit, pages=0)

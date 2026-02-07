@@ -14,6 +14,7 @@ class UpdateUserRequest(BaseModel):
     email: EmailStr | None = None
     image_s3_path: str | None = None
 
+
 class UserResponse(BaseModel):
     id: UUID
     name: str
@@ -27,9 +28,11 @@ class UserResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class AvatarUploadRequest(BaseModel):
     filename: str
     content_type: str
+
 
 class AvatarPresignedUrlResponse(BaseModel):
     upload_url: str

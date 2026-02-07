@@ -27,5 +27,6 @@ class InvalidCredentialsError(DomainError):
 class UserBlockedError(DomainError):
     pass
 
+
 class ForbiddenError(DomainError):
     pass

@@ -92,25 +92,20 @@ class SqlAlchemyUserRepository(IUserRepository):
         return result.scalar_one_or_none() is not None
 
     async def get_all(
-            self,
-            limit: int,
-            offset: int,
-            filter_by_name: str | None = None,
-            sort_by: str | None = None,
-            order_by: str = "asc",
-            group_id: UUID | None = None
+        self,
+        limit: int,
+        offset: int,
+        filter_by_name: str | None = None,
+        sort_by: str | None = None,
+        order_by: str = "asc",
+        group_id: UUID | None = None,
     ) -> tuple[list[User], int]:
 
         query = select(UserModel) if group_id is None else select(UserModel).where(UserModel.group_id == group_id)
 
         if filter_by_name:
             search = f"%{filter_by_name}%"
-            query = query.where(
-                or_(
-                    UserModel.name.ilike(search),
-                    UserModel.surname.ilike(search)
-                )
-            )
+            query = query.where(or_(UserModel.name.ilike(search), UserModel.surname.ilike(search)))
 
         count_query = select(func.count()).select_from(query.subquery())
         total_result = await self._session.execute(count_query)

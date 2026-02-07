@@ -10,6 +10,7 @@ class SignupRequest(BaseModel):
     email: EmailStr
     phone_number: PhoneNumber
 
+
 class LoginRequest(BaseModel):
     login: str
     password: str

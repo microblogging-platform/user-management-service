@@ -47,9 +47,7 @@ async def signup(
     except Exception as e:
         logging.error(f"Error registering user: {e}", exc_info=True)
         await session.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create user") from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create user") from e
 
 
 @router.post("/login", response_model=TokenResponse, status_code=status.HTTP_200_OK)
@@ -69,23 +67,27 @@ async def login(
 
     except InvalidCredentialsError as e:
         await session.rollback()
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=e.message, headers={"WWW-Authenticate": "Bearer"}) from e
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail=e.message, headers={"WWW-Authenticate": "Bearer"}
+        ) from e
     except DomainError as e:
         logging.error(f"Error while logging in: {e}", exc_info=True)
         await session.rollback()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message, headers={"WWW-Authenticate": "Bearer"}) from e
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=e.message, headers={"WWW-Authenticate": "Bearer"}
+        ) from e
     except Exception as e:
         logging.error(f"Error while logging in: {e}", exc_info=True, headers={"WWW-Authenticate": "Bearer"})
         await session.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error while logging in") from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error while logging in") from e
+
 
 @router.post("/refresh-token", response_model=TokenResponse, status_code=status.HTTP_200_OK)
 async def refresh_token(
-        request: str,
-        use_case: Annotated[UseCase, Depends(get_register_user_use_case)],
-        session: Annotated[AsyncSession, Depends(get_db_session)]):
+    request: str,
+    use_case: Annotated[UseCase, Depends(get_register_user_use_case)],
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+):
     try:
         tokens = await use_case.execute(request)
 
@@ -103,6 +105,4 @@ async def refresh_token(
     except Exception as e:
         logging.error(f"Error while refreshing tokens: {e}", exc_info=True)
         await session.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error while logging in") from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error while logging in") from e
