@@ -24,3 +24,12 @@ class TokenResponse(BaseModel):
 
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
+
+
+class PasswordResetRequest(BaseModel):
+    login: EmailStr | PhoneNumber | str
+
+
+class ResetPasswordConfirmRequest(BaseModel):
+    token: str
+    new_password: str = Field(..., min_length=8, max_length=128, description="New password")

@@ -1,9 +1,10 @@
 from uuid import UUID
+
 from application.dto.user import UserDTO
 from application.usecases.base import UseCase
 from domain.entities.user import User
 from domain.enums.roles import Role
-from domain.exceptions import UserDoesNotExistsError, ForbiddenError
+from domain.exceptions import ForbiddenError, UserDoesNotExistsError
 from domain.interfaces.repositories import IUserRepository
 from domain.interfaces.services.storage import IStorageService
 

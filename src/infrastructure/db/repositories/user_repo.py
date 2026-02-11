@@ -1,14 +1,14 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
-from pydantic import EmailStr
-from pydantic_extra_types.phone_numbers import PhoneNumber
 
 from domain.entities import User
-from sqlalchemy import or_, select, asc, desc, func
-from infrastructure.db.models import UserModel
-from sqlalchemy.ext.asyncio import AsyncSession
-from infrastructure.db.mappers import user_mapper
 from domain.interfaces.repositories import IUserRepository
+from infrastructure.db.mappers import user_mapper
+from infrastructure.db.models import UserModel
+from pydantic import EmailStr
+from pydantic_extra_types.phone_numbers import PhoneNumber
+from sqlalchemy import asc, desc, exists, func, or_, select, update
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class SqlAlchemyUserRepository(IUserRepository):
@@ -72,6 +72,16 @@ class SqlAlchemyUserRepository(IUserRepository):
 
         return user_mapper.to_domain(user_model)
 
+    async def update_password(self, user_id: UUID, password_hash: str) -> None:
+        stmt = (
+            update(UserModel)
+            .where(UserModel.id == user_id)
+            .values(password_hash=password_hash, modified_at=datetime.now(timezone.utc))
+            .execution_options(synchronize_session=False)
+        )
+
+        await self._session.execute(stmt)
+
     async def delete(self, user_id: UUID) -> None:
         stmt = select(UserModel).where(UserModel.id == user_id)
         result = await self._session.execute(stmt)
@@ -82,14 +92,19 @@ class SqlAlchemyUserRepository(IUserRepository):
             await self._session.flush()
 
     async def exists_by_username(self, username: str) -> bool:
-        stmt = select(UserModel.id).where(UserModel.username == username).limit(1)
+        stmt = select(exists().where(UserModel.username == username))
         result = await self._session.execute(stmt)
-        return result.scalar_one_or_none() is not None
+        return result.scalar()
 
     async def exists_by_email(self, email: EmailStr) -> bool:
-        stmt = select(UserModel.id).where(UserModel.email == str(email)).limit(1)
+        stmt = select(exists().where(UserModel.email == str(email)))
         result = await self._session.execute(stmt)
-        return result.scalar_one_or_none() is not None
+        return result.scalar()
+
+    async def exists_by_id(self, user_id: UUID) -> bool:
+        stmt = select(exists().where(UserModel.id == user_id))
+        result = await self._session.execute(stmt)
+        return result.scalar()
 
     async def get_all(
         self,

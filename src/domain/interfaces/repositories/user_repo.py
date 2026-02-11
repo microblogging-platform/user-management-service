@@ -1,11 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional
 from uuid import UUID
-
-from pydantic_extra_types.phone_numbers import PhoneNumber
 
 from domain.entities import User
 from pydantic import EmailStr
+from pydantic_extra_types.phone_numbers import PhoneNumber
 
 
 class IUserRepository(ABC):
@@ -27,6 +25,10 @@ class IUserRepository(ABC):
         pass
 
     @abstractmethod
+    async def update_password(self, user_id: UUID, password_hash: str) -> None:
+        pass
+
+    @abstractmethod
     async def delete(self, user_id: UUID) -> None:
         pass
 
@@ -36,6 +38,10 @@ class IUserRepository(ABC):
 
     @abstractmethod
     async def exists_by_email(self, email: EmailStr) -> bool:
+        pass
+
+    @abstractmethod
+    async def exists_by_id(self, user_id: UUID) -> bool:
         pass
 
     @abstractmethod

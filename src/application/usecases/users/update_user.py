@@ -1,11 +1,12 @@
-from uuid import UUID
 from datetime import datetime, timezone
-from application.usecases.base import UseCase
+from uuid import UUID
+
 from application.dto.user import UpdateUserCommand, UserDTO
-from domain.interfaces.repositories import IUserRepository
+from application.usecases.base import UseCase
 from domain.entities.user import User
 from domain.enums.roles import Role
-from domain.exceptions import DomainError, UserAlreadyExistsError, ForbiddenError
+from domain.exceptions import DomainError, ForbiddenError, UserAlreadyExistsError
+from domain.interfaces.repositories import IUserRepository
 
 
 class UpdateUserUseCase(UseCase):

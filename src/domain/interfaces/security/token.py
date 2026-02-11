@@ -14,6 +14,10 @@ class ITokenService(ABC):
         pass
 
     @abstractmethod
+    def create_reset_token(self, data: dict, expires_delta: int | None = 15) -> str:
+        pass
+
+    @abstractmethod
     def decode_token(self, token: str) -> dict[str, Any]:
         pass
 

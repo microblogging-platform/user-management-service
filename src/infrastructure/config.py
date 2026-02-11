@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     app_name: str = "user-management-service"
 
+    frontend_url: str
+
     # Postgres
     postgres_user: str
     postgres_password: str
@@ -44,6 +46,8 @@ class Settings(BaseSettings):
     jwt_algorithm: str
     access_token_expire_minutes: int
     refresh_token_expire_minutes: int
+
+    password_reset_token_expire_minutes: int
 
     # AWS S3
     aws_access_key_id: str

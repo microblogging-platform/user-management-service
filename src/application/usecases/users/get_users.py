@@ -1,6 +1,6 @@
 import math
 
-from application.dto.user import GetUsersQuery, UsersListResponse, UserDTO
+from application.dto.user import GetUsersQuery, UserDTO, UsersListResponse
 from application.usecases.base import UseCase
 from domain.entities import User
 from domain.enums import Role

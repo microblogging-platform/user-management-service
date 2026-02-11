@@ -1,10 +1,21 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
+from infrastructure.brokers.connection import close_rabbitmq, init_rabbitmq
 from infrastructure.config import settings
 from presentation.api.v1.endpoints import auth, user
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_rabbitmq()
+    yield
+    await close_rabbitmq()
+
+
 def create_app() -> FastAPI:
     app = FastAPI(
+        lifespan=lifespan,
         title=settings.app_name,
         version="0.1.0",
     )

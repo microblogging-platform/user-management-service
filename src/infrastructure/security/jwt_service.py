@@ -14,6 +14,7 @@ class PyJWTService(ITokenService):
         self.algorithm = settings.jwt_algorithm
         self.access_token_expire_minutes = settings.access_token_expire_minutes
         self.refresh_token_expire_minutes = settings.refresh_token_expire_minutes
+        self.password_reset_token_expire_minutes = settings.password_reset_token_expire_minutes
 
     def create_access_token(self, data: Dict[str, Any], expires_delta: int | None = None) -> str:
         return self._create_token(
@@ -27,6 +28,13 @@ class PyJWTService(ITokenService):
             data=data,
             token_type="refresh",
             expires_delta=expires_delta or self.refresh_token_expire_minutes,
+        )
+
+    def create_reset_token(self, data: Dict[str, Any], expires_delta: int | None = None) -> str:
+        return self._create_token(
+            data=data,
+            token_type="reset_password",
+            expires_delta=expires_delta or self.password_reset_token_expire_minutes,
         )
 
     def _create_token(self, data: Dict[str, Any], token_type: str, expires_delta: int) -> str:

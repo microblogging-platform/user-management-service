@@ -1,8 +1,8 @@
-import aioboto3
+from typing import BinaryIO
 from uuid import uuid4
-from typing import BinaryIO, Any, Coroutine
-from botocore.exceptions import ClientError
 
+import aioboto3
+from botocore.exceptions import ClientError
 from domain.interfaces.services.storage import IStorageService
 from infrastructure.config import settings
 

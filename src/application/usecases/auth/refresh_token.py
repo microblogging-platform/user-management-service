@@ -1,6 +1,6 @@
 from application.dto.auth import TokenResponse
 from application.usecases.base import UseCase
-from domain.exceptions import InvalidTokenError, InvalidCredentialsError
+from domain.exceptions import InvalidCredentialsError, InvalidTokenError
 from domain.interfaces.repositories import IUserRepository
 from domain.interfaces.security import ITokenService
 from domain.interfaces.services.blacklist import ITokenBlacklistService

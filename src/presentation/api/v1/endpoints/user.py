@@ -1,36 +1,34 @@
 import logging
-from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import Annotated, Literal
+from uuid import UUID
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from application.dto.user import UserDTO, UsersListResponse, GetUsersQuery
-from application.dto.user import UpdateUserCommand
+from application.dto.user import GetUsersQuery, UpdateUserCommand, UserDTO, UsersListResponse
 from application.usecases.base import UseCase
 from domain.entities import User
 from domain.exceptions import (
-    UserDoesNotExistsError,
-    UserBlockedError,
-    UserAlreadyExistsError,
     DomainError,
     ForbiddenError,
+    UserAlreadyExistsError,
+    UserBlockedError,
+    UserDoesNotExistsError,
 )
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from infrastructure.db import get_db_session
 from presentation.api.v1.dependencies import (
-    get_update_user_use_case,
-    get_delete_user_use_case,
     get_current_user,
+    get_delete_user_use_case,
+    get_initiate_avatar_upload_use_case,
+    get_update_user_use_case,
     get_user_by_id_use_case,
     get_users_list_use_case,
-    get_initiate_avatar_upload_use_case,
 )
 from presentation.api.v1.schemas.user import (
+    AvatarPresignedUrlResponse,
+    AvatarUploadRequest,
     UpdateUserRequest,
     UserResponse,
-    AvatarUploadRequest,
-    AvatarPresignedUrlResponse,
 )
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -97,7 +95,7 @@ async def delete_me(
         await use_case.execute(user_id)
         await session.commit()
 
-    except Exception as e:
+    except Exception:
         await session.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to delete user")
 

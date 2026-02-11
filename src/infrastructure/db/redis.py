@@ -1,6 +1,7 @@
 from typing import AsyncGenerator
-from redis.asyncio import Redis, from_url
+
 from infrastructure.config import settings
+from redis.asyncio import Redis, from_url
 
 
 async def get_redis_client() -> AsyncGenerator[Redis, None]:
