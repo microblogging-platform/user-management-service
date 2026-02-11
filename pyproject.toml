@@ -24,10 +24,26 @@ dependencies = [
     "python-multipart (>=0.0.22,<0.0.23)",
     "types-aioboto3[s3] (>=15.5.0,<16.0.0)",
     "aio-pika (>=9.5.8,<10.0.0)",
-    "aiormq (>=6.9.2,<7.0.0)"
+    "aiormq (>=6.9.2,<7.0.0)",
     "redis (>=7.1.0,<8.0.0)"
 ]
 
+
+[dependency-groups]
+dev = [
+    "pytest (>=9.0.2,<10.0.0)",
+    "pytest-cov (>=7.0.0,<8.0.0)",
+    "httpx (>=0.28.1,<0.29.0)",
+]
+
+[tool.coverage.run]
+omit = [
+    "tests/*",
+    "*/tests/*",
+    "*_test.py",
+    "test_*.py",
+    "alembic/*"
+]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

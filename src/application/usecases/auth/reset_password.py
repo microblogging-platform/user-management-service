@@ -1,4 +1,3 @@
-
 from application.usecases.base import UseCase
 from domain.exceptions import InvalidCredentialsError, InvalidTokenError
 from domain.interfaces.repositories import IUserRepository
