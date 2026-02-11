@@ -13,14 +13,13 @@ class RegisterUserUseCase(UseCase):
         self.password_hasher = password_hasher
 
     async def execute(self, command: RegisterUserCommand) -> None:
-
         if await self.user_repo.exists_by_username(command.username):
             raise UserAlreadyExistsError(f"Username {command.username} already exists")
 
         if await self.user_repo.exists_by_email(command.email):
             raise UserAlreadyExistsError(f"Email {command.email} already exists")
 
-        password_hash = self.password_hasher.hash(command.password)
+        password_hash = await self.password_hasher.hash(command.password)
 
         new_user = User(
             name=command.name,

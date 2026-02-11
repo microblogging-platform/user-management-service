@@ -36,7 +36,7 @@ class ResetPasswordUseCase(UseCase):
         if not await self.user_repo.exists_by_id(user_id):
             raise InvalidCredentialsError("User not found")
 
-        hashed_password = self.password_hasher.hash(new_password)
+        hashed_password = await self.password_hasher.hash(new_password)
 
         await self.user_repo.update_password(user_id, hashed_password)
 

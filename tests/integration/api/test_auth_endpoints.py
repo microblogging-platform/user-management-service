@@ -1,128 +1,242 @@
-from unittest.mock import AsyncMock
+from datetime import datetime, timedelta, timezone
+from typing import Any, AsyncIterator, Dict, List
+
+import pytest
+from httpx import ASGITransport, AsyncClient
 
 from application.dto.auth import TokenResponse
-from domain.exceptions import InvalidCredentialsError, InvalidTokenError, UserAlreadyExistsError
+from domain.entities import User
+from domain.enums import Role
+from domain.interfaces.services.blacklist import ITokenBlacklistService
+from domain.interfaces.services.message_broker import IMessageBroker
 from fastapi import FastAPI
-from fastapi.testclient import TestClient
+from infrastructure.db import get_db_session
+from infrastructure.db.repositories import SqlAlchemyUserRepository
+from infrastructure.security.jwt_service import PyJWTService
 from presentation.api.v1 import dependencies as deps
 from presentation.api.v1.endpoints import auth
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
-class DummySession:
-    def __init__(self):
-        self.commit = AsyncMock()
-        self.rollback = AsyncMock()
+class InMemoryTokenBlacklistService(ITokenBlacklistService):
+    def __init__(self) -> None:
+        self._blacklisted: Dict[str, int] = {}
+
+    async def blacklist_token(self, token: str, expires_at: int) -> None:
+        self._blacklisted[token] = expires_at
+
+    async def is_blacklisted(self, token: str) -> bool:
+        now_ts = int(datetime.now(timezone.utc).timestamp())
+        # вычищаем протухшие токены
+        self._blacklisted = {t: exp for t, exp in self._blacklisted.items() if exp > now_ts}
+        return token in self._blacklisted
 
 
-def _build_auth_app(use_case_overrides: dict):
+class FakeMessageBroker(IMessageBroker):
+    def __init__(self) -> None:
+        self.published: List[Dict[str, Any]] = []
+
+    async def publish(self, queue_name: str, message: Dict[str, Any]) -> None:
+        self.published.append({"queue": queue_name, "message": message})
+
+
+@pytest.fixture
+async def persisted_user(db_session: AsyncSession) -> User:
+    """Создаём реального пользователя в тестовой БД."""
+    repo = SqlAlchemyUserRepository(db_session)
+    user = User(
+        name="John",
+        surname="Doe",
+        username="johnny",
+        password_hash="secret123",  # хеш пересчитается в use case при signup/login
+        email="john@example.com",
+        phone_number="+14155552671",
+        role=Role.USER,
+        image_s3_path="",
+        is_blocked=False,
+        group_id=None,
+    )
+    return await repo.create(user)
+
+
+@pytest.fixture
+async def app(db_session: AsyncSession) -> FastAPI:
+    """Полноценное FastAPI-приложение для /auth с тестовой БД и фейковыми внешними сервисами."""
     app = FastAPI()
     app.include_router(auth.router, prefix="/api/v1")
-    session = DummySession()
 
-    async def override_db_session():
-        yield session
+    async def override_db_session() -> AsyncIterator[AsyncSession]:
+        yield db_session
 
-    app.dependency_overrides[auth.get_db_session] = override_db_session
-    app.dependency_overrides.update(use_case_overrides)
-    return app, session
+    blacklist_service = InMemoryTokenBlacklistService()
+    message_broker = FakeMessageBroker()
+
+    app.dependency_overrides[get_db_session] = override_db_session
+    app.dependency_overrides[deps.get_token_blacklist_service] = lambda: blacklist_service
+    app.dependency_overrides[deps.get_message_broker] = lambda: message_broker
+
+    return app
 
 
-def test_signup_success_commits_transaction():
-    use_case = AsyncMock()
-    app, session = _build_auth_app({deps.get_register_user_use_case: lambda: use_case})
+@pytest.fixture
+async def client(app: FastAPI) -> AsyncIterator[AsyncClient]:
+    """Асинхронный HTTP-клиент поверх тестового приложения."""
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        yield ac
 
-    client = TestClient(app)
-    response = client.post(
-        "/api/v1/auth/signup",
-        json={
-            "name": "John",
-            "surname": "Doe",
-            "username": "johnny",
-            "password": "secret123",
-            "email": "john@example.com",
-            "phone_number": "+14155552671",
-        },
-    )
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_signup_creates_user_in_test_db(client: AsyncClient, db_session: AsyncSession) -> None:
+    payload = {
+        "name": "John",
+        "surname": "Doe",
+        "username": "signup_user",
+        "password": "secret123",
+        "email": "signup@example.com",
+        "phone_number": "+14155552671",
+    }
+
+    response = await client.post("/api/v1/auth/signup", json=payload)
 
     assert response.status_code == 201
-    session.commit.assert_awaited_once()
+
+    repo = SqlAlchemyUserRepository(db_session)
+    created = await repo.get_by_username("signup_user")
+    assert created is not None
+    assert created.email == "signup@example.com"
 
 
-def test_signup_duplicate_user_returns_conflict():
-    use_case = AsyncMock()
-    use_case.execute.side_effect = UserAlreadyExistsError("already exists")
-    app, session = _build_auth_app({deps.get_register_user_use_case: lambda: use_case})
+@pytest.mark.asyncio(loop_scope="session")
+async def test_signup_duplicate_user_returns_conflict(client: AsyncClient) -> None:
+    payload = {
+        "name": "John",
+        "surname": "Doe",
+        "username": "dup_user",
+        "password": "secret123",
+        "email": "dup@example.com",
+        "phone_number": "+14155552671",
+    }
 
-    client = TestClient(app)
-    response = client.post(
-        "/api/v1/auth/signup",
-        json={
-            "name": "John",
-            "surname": "Doe",
-            "username": "johnny",
-            "password": "secret123",
-            "email": "john@example.com",
-            "phone_number": "+14155552671",
-        },
+    first = await client.post("/api/v1/auth/signup", json=payload)
+    assert first.status_code == 201
+
+    second = await client.post("/api/v1/auth/signup", json=payload)
+    assert second.status_code == 409
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_login_success_returns_valid_tokens(client: AsyncClient) -> None:
+    # сначала регистрируем пользователя
+    signup_payload = {
+        "name": "John",
+        "surname": "Doe",
+        "username": "login_user",
+        "password": "secret123",
+        "email": "login@example.com",
+        "phone_number": "+14155552671",
+    }
+    resp = await client.post("/api/v1/auth/signup", json=signup_payload)
+    assert resp.status_code == 201
+
+    # затем логинимся
+    login_resp = await client.post(
+        "/api/v1/auth/login",
+        data={"username": "login_user", "password": "secret123"},
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
 
-    assert response.status_code == 409
-    session.rollback.assert_awaited_once()
+    assert login_resp.status_code == 200
+    data = TokenResponse(**login_resp.json())
+    assert data.access_token
+    assert data.refresh_token
+
+    # проверяем, что access_token декодится и содержит правильный subject
+    jwt_service = PyJWTService()
+    payload = jwt_service.decode_token(data.access_token)
+    assert payload["type"] == "access"
+    assert payload["sub"]
 
 
-def test_login_success_returns_tokens():
-    use_case = AsyncMock()
-    use_case.execute.return_value = TokenResponse(access_token="a", refresh_token="r")
-    app, _session = _build_auth_app({deps.get_login_use_case: lambda: use_case})
-
-    client = TestClient(app)
-    response = client.post("/api/v1/auth/login", data={"username": "john", "password": "secret"})
-
-    assert response.status_code == 200
-    assert response.json()["access_token"] == "a"
-
-
-def test_login_invalid_credentials_returns_401():
-    use_case = AsyncMock()
-    use_case.execute.side_effect = InvalidCredentialsError("bad credentials")
-    app, session = _build_auth_app({deps.get_login_use_case: lambda: use_case})
-
-    client = TestClient(app)
-    response = client.post("/api/v1/auth/login", data={"username": "john", "password": "wrong"})
+@pytest.mark.asyncio(loop_scope="session")
+async def test_login_invalid_credentials_returns_401(client: AsyncClient) -> None:
+    response = await client.post(
+        "/api/v1/auth/login",
+        data={"username": "nonexistent", "password": "wrong"},
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
 
     assert response.status_code == 401
-    session.rollback.assert_awaited_once()
 
 
-def test_refresh_token_invalid_returns_401():
-    use_case = AsyncMock()
-    use_case.execute.side_effect = InvalidTokenError("invalid")
-    app, session = _build_auth_app({deps.get_refresh_token_use_case: lambda: use_case})
-
-    client = TestClient(app)
-    response = client.post("/api/v1/auth/refresh-token", json={"refresh_token": "bad"})
-
+@pytest.mark.asyncio(loop_scope="session")
+async def test_refresh_token_invalid_returns_401(client: AsyncClient) -> None:
+    response = await client.post("/api/v1/auth/refresh-token", json={"refresh_token": "bad"})
     assert response.status_code == 401
-    session.rollback.assert_awaited_once()
 
 
-def test_reset_password_success():
-    use_case = AsyncMock()
-    app, session = _build_auth_app({deps.get_reset_password_use_case: lambda: use_case})
+@pytest.mark.asyncio(loop_scope="session")
+async def test_request_password_reset_publishes_message(
+    client: AsyncClient, app: FastAPI
+) -> None:
+    # сначала создаём пользователя, чтобы use case нашёл его по логину
+    signup_payload = {
+        "name": "John",
+        "surname": "Doe",
+        "username": "reset_request_user",
+        "password": "secret123",
+        "email": "john@example.com",
+        "phone_number": "+14155552671",
+    }
+    resp = await client.post("/api/v1/auth/signup", json=signup_payload)
+    assert resp.status_code == 201
 
-    client = TestClient(app)
-    response = client.post("/api/v1/auth/reset-password", json={"token": "abc", "new_password": "newsecret12"})
+    # достаем фейковый брокер из оверрайда
+    broker: FakeMessageBroker = app.dependency_overrides[deps.get_message_broker]()  # type: ignore[assignment]
 
-    assert response.status_code == 200
-    session.commit.assert_awaited_once()
-
-
-def test_request_password_reset_always_200_when_ok():
-    use_case = AsyncMock()
-    app, _session = _build_auth_app({deps.get_request_password_reset_use_case: lambda: use_case})
-
-    client = TestClient(app)
-    response = client.post("/api/v1/auth/request-password-reset", json={"login": "john@example.com"})
+    response = await client.post(
+        "/api/v1/auth/request-password-reset", json={"login": "john@example.com"}
+    )
 
     assert response.status_code == 200
     assert "reset link has been sent" in response.json()["detail"]
+    # проверяем, что что-то было отправлено в брокер
+    assert len(broker.published) >= 1
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_reset_password_allows_login_with_new_password(
+    client: AsyncClient, db_session: AsyncSession
+) -> None:
+    # создаём пользователя и получаем reset token
+    signup_payload = {
+        "name": "John",
+        "surname": "Doe",
+        "username": "reset_user",
+        "password": "oldpassword123",
+        "email": "reset@example.com",
+        "phone_number": "+14155552671",
+    }
+    resp = await client.post("/api/v1/auth/signup", json=signup_payload)
+    assert resp.status_code == 201
+
+    # находим реального пользователя и создаём корректный reset-токен по его id
+    repo = SqlAlchemyUserRepository(db_session)
+    user = await repo.get_by_username("reset_user")
+    assert user is not None
+
+    jwt_service = PyJWTService()
+    reset_token = jwt_service.create_reset_token({"sub": str(user.id)})
+
+    reset_resp = await client.post(
+        "/api/v1/auth/reset-password",
+        json={"token": reset_token, "new_password": "newpassword123"},
+    )
+    assert reset_resp.status_code == 200
+
+    # теперь можно залогиниться с новым паролем
+    login_resp = await client.post(
+        "/api/v1/auth/login",
+        data={"username": "reset_user", "password": "newpassword123"},
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    assert login_resp.status_code == 200

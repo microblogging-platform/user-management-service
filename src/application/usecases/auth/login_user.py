@@ -22,7 +22,7 @@ class LoginUserUseCase(UseCase):
         if not user:
             raise InvalidCredentialsError("Invalid username, email or phone number")
 
-        if not self.password_hasher.verify(command.password, user.password_hash):
+        if not await self.password_hasher.verify(command.password, user.password_hash):
             raise InvalidCredentialsError("Incorrect password")
 
         if user.is_blocked:
