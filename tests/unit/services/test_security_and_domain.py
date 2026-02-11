@@ -1,7 +1,7 @@
+import pytest
 from datetime import datetime, timezone
 from uuid import uuid4
 
-import pytest
 from domain.entities import Group, User
 from domain.enums import Role
 from domain.exceptions import DomainError, InvalidTokenError
@@ -9,19 +9,27 @@ from infrastructure.security.jwt_service import PyJWTService
 from infrastructure.security.password_hasher import Argon2Hasher
 
 
-def test_argon2_hasher_hash_and_verify():
+@pytest.mark.asyncio
+async def test_argon2_hasher_hash_and_verify():
     hasher = Argon2Hasher()
-    hashed = hasher.hash("strong-password")
+
+    hashed = await hasher.hash("strong-password")
 
     assert hashed != "strong-password"
-    assert hasher.verify("strong-password", hashed) is True
-    assert hasher.verify("wrong-password", hashed) is False
+
+    is_valid = await hasher.verify("strong-password", hashed)
+    assert is_valid is True
+
+    is_invalid = await hasher.verify("wrong-password", hashed)
+    assert is_invalid is False
 
 
-def test_argon2_hasher_rejects_empty_password():
+@pytest.mark.asyncio
+async def test_argon2_hasher_rejects_empty_password():
     hasher = Argon2Hasher()
+
     with pytest.raises(ValueError):
-        hasher.hash("")
+        await hasher.hash("")
 
 
 def test_jwt_service_create_and_decode_access_token():
