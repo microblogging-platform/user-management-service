@@ -2,6 +2,7 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi.security import OAuth2PasswordBearer
+from redis.asyncio import Redis
 from starlette import status
 
 from application.usecases.auth.login_user import LoginUserUseCase
@@ -19,8 +20,10 @@ from domain.interfaces.repositories import IGroupRepository, IUserRepository
 from domain.interfaces.security import IPasswordHasher, ITokenService
 from fastapi import Depends, HTTPException
 
+from domain.interfaces.services.blacklist import ITokenBlacklistService
 from domain.interfaces.services.storage import IStorageService
 from infrastructure.db import get_db_session
+from infrastructure.db.redis import get_redis_client
 from infrastructure.db.repositories import (
     SqlAlchemyGroupRepository,
     SqlAlchemyUserRepository,
@@ -29,6 +32,7 @@ from infrastructure.security import Argon2Hasher
 from infrastructure.security.jwt_service import PyJWTService
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from infrastructure.security.redis_blacklist import RedisTokenBlacklistService
 from infrastructure.services.s3_service import S3Service
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
@@ -44,6 +48,10 @@ def get_jwt_service() -> ITokenService:
 
 async def get_storage_service() -> IStorageService:
     return S3Service()
+
+
+async def get_token_blacklist_service(redis: Annotated[Redis, Depends(get_redis_client)]) -> ITokenBlacklistService:
+    return RedisTokenBlacklistService(redis)
 
 
 async def get_user_repository(
@@ -113,8 +121,9 @@ async def get_login_use_case(
 async def get_refresh_token_use_case(
     user_repo: Annotated[IUserRepository, Depends(get_user_repository)],
     token_service: Annotated[ITokenService, Depends(get_jwt_service)],
+    blacklist_service: Annotated[ITokenBlacklistService, Depends(get_token_blacklist_service)],
 ) -> UseCase:
-    return RefreshTokenUseCase(user_repo, token_service)
+    return RefreshTokenUseCase(user_repo, token_service, blacklist_service)
 
 
 async def get_update_user_use_case(

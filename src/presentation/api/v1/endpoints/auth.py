@@ -9,16 +9,19 @@ from domain.exceptions import (
     DomainError,
     InvalidCredentialsError,
     UserAlreadyExistsError,
+    InvalidTokenError,
 )
 from fastapi import APIRouter, Depends, HTTPException, status
 from infrastructure.db import get_db_session
 from presentation.api.v1.dependencies import (
     get_login_use_case,
     get_register_user_use_case,
+    get_refresh_token_use_case,
 )
 from presentation.api.v1.schemas.auth import (
     SignupRequest,
     TokenResponse,
+    RefreshTokenRequest,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -84,25 +87,29 @@ async def login(
 
 @router.post("/refresh-token", response_model=TokenResponse, status_code=status.HTTP_200_OK)
 async def refresh_token(
-    request: str,
-    use_case: Annotated[UseCase, Depends(get_register_user_use_case)],
+    request: RefreshTokenRequest,
+    use_case: Annotated[UseCase, Depends(get_refresh_token_use_case)],
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ):
     try:
-        tokens = await use_case.execute(request)
+        tokens = await use_case.execute(request.refresh_token)
 
         await session.commit()
 
         return tokens
 
-    except InvalidCredentialsError as e:
+    except (InvalidCredentialsError, InvalidTokenError) as e:
         await session.rollback()
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=e.message) from e
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)) from e
+
     except DomainError as e:
         logging.error(f"Error while refreshing tokens: {e}", exc_info=True)
         await session.rollback()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message) from e
+
     except Exception as e:
         logging.error(f"Error while refreshing tokens: {e}", exc_info=True)
         await session.rollback()
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error while logging in") from e
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error while refreshing tokens"
+        ) from e
