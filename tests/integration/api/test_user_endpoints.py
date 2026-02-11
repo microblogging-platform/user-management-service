@@ -105,7 +105,6 @@ async def test_get_user_by_id_allows_admin(client: AsyncClient, persisted_user: 
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_get_users_returns_paginated_list(client: AsyncClient, db_session: AsyncSession, persisted_user: User) -> None:
-    # добавим ещё одного пользователя
     repo = SqlAlchemyUserRepository(db_session)
     other_user = User(
         name="Alice",
