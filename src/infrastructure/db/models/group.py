@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
 from uuid import UUID, uuid4
 
@@ -7,6 +7,10 @@ from sqlalchemy import DateTime, Index, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
+def utc_now() -> datetime:
+    """Return current UTC datetime for default/onupdate."""
+    return datetime.now(timezone.utc)
+
 class GroupModel(Base):
     __tablename__ = "groups"
 
@@ -14,7 +18,14 @@ class GroupModel(Base):
 
     name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
+
+    modified_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=utc_now,
+        onupdate=utc_now,
+        nullable=False,
+    )
 
     users: Mapped[List["UserModel"]] = relationship("UserModel", back_populates="group", lazy="selectin")
 

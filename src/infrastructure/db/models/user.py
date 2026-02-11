@@ -9,9 +9,9 @@ from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
-def utc_now():
-    datetime.now(timezone.utc)
-
+def utc_now() -> datetime:
+    """Return current UTC datetime for default/onupdate."""
+    return datetime.now(timezone.utc)
 
 class UserModel(Base):
     __tablename__ = "users"

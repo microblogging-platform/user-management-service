@@ -1,4 +1,3 @@
-import asyncio
 from unittest.mock import AsyncMock, Mock
 from uuid import uuid4
 
@@ -11,10 +10,6 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from main import create_app
 from presentation.api.v1.dependencies import get_current_user, get_current_user_id
-
-
-def run(coro):
-    return asyncio.run(coro)
 
 
 def test_get_current_user_id_success():
@@ -37,7 +32,8 @@ def test_get_current_user_id_invalid_token():
     assert exc.value.status_code == 401
 
 
-def test_get_current_user_success():
+@pytest.mark.asyncio
+async def test_get_current_user_success():
     user = User(
         id=uuid4(),
         name="John",
@@ -54,12 +50,13 @@ def test_get_current_user_success():
     repo = AsyncMock()
     repo.get_by_id.return_value = user
 
-    result = run(get_current_user(user.id, repo))
+    result = await get_current_user(user.id, repo)
 
     assert result.id == user.id
 
 
-def test_get_current_user_blocked_raises_403():
+@pytest.mark.asyncio
+async def test_get_current_user_blocked_raises_403():
     user = User(
         id=uuid4(),
         name="John",
@@ -77,7 +74,7 @@ def test_get_current_user_blocked_raises_403():
     repo.get_by_id.return_value = user
 
     with pytest.raises(HTTPException) as exc:
-        run(get_current_user(user.id, repo))
+        await get_current_user(user.id, repo)
 
     assert exc.value.status_code == 403
 
