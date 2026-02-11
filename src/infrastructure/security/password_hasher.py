@@ -1,20 +1,27 @@
+import asyncio
+from argon2 import PasswordHasher as Argon2PasswordHasher
+from argon2.exceptions import VerifyMismatchError
 from domain.interfaces.security import IPasswordHasher
-from passlib.context import CryptContext
 
 
 class Argon2Hasher(IPasswordHasher):
     def __init__(self):
-        self._context = CryptContext(
-            schemes=["argon2"],
-            deprecated="auto",
-        )
+        self._ph = Argon2PasswordHasher()
 
-    def hash(self, password: str) -> str:
+    async def hash(self, password: str) -> str:
         if not password:
             raise ValueError("Password cannot be empty")
-        return self._context.hash(password)
 
-    def verify(self, plain_password: str, hashed_password: str) -> bool:
-        if not plain_password or not hashed_password:
+        return await asyncio.to_thread(self._ph.hash, password)
+
+    async def verify(self, password: str, hashed_password: str) -> bool:
+        if not password or not hashed_password:
             return False
-        return self._context.verify(plain_password, hashed_password)
+
+        def _verify_sync():
+            try:
+                return self._ph.verify(hashed_password, password)
+            except VerifyMismatchError:
+                return False
+
+        return await asyncio.to_thread(_verify_sync)

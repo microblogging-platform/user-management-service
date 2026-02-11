@@ -4,9 +4,9 @@ from abc import ABC, abstractmethod
 class IPasswordHasher(ABC):
 
     @abstractmethod
-    def hash(self, password: str) -> str:
+    async def hash(self, password: str) -> str:
         pass
 
     @abstractmethod
-    def verify(self, plain_password: str, hashed_password: str) -> bool:
+    async def verify(self, plain_password: str, hashed_password: str) -> bool:
         pass
