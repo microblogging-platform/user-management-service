@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Any, AsyncIterator, Dict, List
 
 import pytest
@@ -27,7 +27,7 @@ class InMemoryTokenBlacklistService(ITokenBlacklistService):
 
     async def is_blacklisted(self, token: str) -> bool:
         now_ts = int(datetime.now(timezone.utc).timestamp())
-        # вычищаем протухшие токены
+
         self._blacklisted = {t: exp for t, exp in self._blacklisted.items() if exp > now_ts}
         return token in self._blacklisted
 
@@ -42,13 +42,12 @@ class FakeMessageBroker(IMessageBroker):
 
 @pytest.fixture
 async def persisted_user(db_session: AsyncSession) -> User:
-    """Создаём реального пользователя в тестовой БД."""
     repo = SqlAlchemyUserRepository(db_session)
     user = User(
         name="John",
         surname="Doe",
         username="johnny",
-        password_hash="secret123",  # хеш пересчитается в use case при signup/login
+        password_hash="secret123",
         email="john@example.com",
         phone_number="+14155552671",
         role=Role.USER,
@@ -61,7 +60,6 @@ async def persisted_user(db_session: AsyncSession) -> User:
 
 @pytest.fixture
 async def app(db_session: AsyncSession) -> FastAPI:
-    """Полноценное FastAPI-приложение для /auth с тестовой БД и фейковыми внешними сервисами."""
     app = FastAPI()
     app.include_router(auth.router, prefix="/api/v1")
 
@@ -80,7 +78,6 @@ async def app(db_session: AsyncSession) -> FastAPI:
 
 @pytest.fixture
 async def client(app: FastAPI) -> AsyncIterator[AsyncClient]:
-    """Асинхронный HTTP-клиент поверх тестового приложения."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
 
@@ -126,7 +123,6 @@ async def test_signup_duplicate_user_returns_conflict(client: AsyncClient) -> No
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_login_success_returns_valid_tokens(client: AsyncClient) -> None:
-    # сначала регистрируем пользователя
     signup_payload = {
         "name": "John",
         "surname": "Doe",
@@ -138,7 +134,6 @@ async def test_login_success_returns_valid_tokens(client: AsyncClient) -> None:
     resp = await client.post("/api/v1/auth/signup", json=signup_payload)
     assert resp.status_code == 201
 
-    # затем логинимся
     login_resp = await client.post(
         "/api/v1/auth/login",
         data={"username": "login_user", "password": "secret123"},
@@ -150,7 +145,6 @@ async def test_login_success_returns_valid_tokens(client: AsyncClient) -> None:
     assert data.access_token
     assert data.refresh_token
 
-    # проверяем, что access_token декодится и содержит правильный subject
     jwt_service = PyJWTService()
     payload = jwt_service.decode_token(data.access_token)
     assert payload["type"] == "access"
@@ -178,7 +172,6 @@ async def test_refresh_token_invalid_returns_401(client: AsyncClient) -> None:
 async def test_request_password_reset_publishes_message(
     client: AsyncClient, app: FastAPI
 ) -> None:
-    # сначала создаём пользователя, чтобы use case нашёл его по логину
     signup_payload = {
         "name": "John",
         "surname": "Doe",
@@ -190,7 +183,6 @@ async def test_request_password_reset_publishes_message(
     resp = await client.post("/api/v1/auth/signup", json=signup_payload)
     assert resp.status_code == 201
 
-    # достаем фейковый брокер из оверрайда
     broker: FakeMessageBroker = app.dependency_overrides[deps.get_message_broker]()  # type: ignore[assignment]
 
     response = await client.post(
@@ -207,7 +199,6 @@ async def test_request_password_reset_publishes_message(
 async def test_reset_password_allows_login_with_new_password(
     client: AsyncClient, db_session: AsyncSession
 ) -> None:
-    # создаём пользователя и получаем reset token
     signup_payload = {
         "name": "John",
         "surname": "Doe",
@@ -219,7 +210,6 @@ async def test_reset_password_allows_login_with_new_password(
     resp = await client.post("/api/v1/auth/signup", json=signup_payload)
     assert resp.status_code == 201
 
-    # находим реального пользователя и создаём корректный reset-токен по его id
     repo = SqlAlchemyUserRepository(db_session)
     user = await repo.get_by_username("reset_user")
     assert user is not None
@@ -233,7 +223,6 @@ async def test_reset_password_allows_login_with_new_password(
     )
     assert reset_resp.status_code == 200
 
-    # теперь можно залогиниться с новым паролем
     login_resp = await client.post(
         "/api/v1/auth/login",
         data={"username": "reset_user", "password": "newpassword123"},
