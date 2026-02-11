@@ -17,7 +17,7 @@ async def test_login_user_success(user_kwargs):
     repo = AsyncMock()
     repo.get_by_login_identifier.return_value = user
 
-    hasher = Mock()
+    hasher = AsyncMock()
     hasher.verify.return_value = True
     tokens = Mock()
     tokens.create_access_token.return_value = "access"
@@ -35,7 +35,7 @@ async def test_login_user_success(user_kwargs):
 async def test_login_user_invalid_login():
     repo = AsyncMock()
     repo.get_by_login_identifier.return_value = None
-    hasher = Mock()
+    hasher = AsyncMock()
     tokens = Mock()
 
     with pytest.raises(InvalidCredentialsError):
@@ -49,7 +49,7 @@ async def test_login_user_blocked(user_kwargs):
     user = User(**{**user_kwargs, "is_blocked": True})
     repo = AsyncMock()
     repo.get_by_login_identifier.return_value = user
-    hasher = Mock()
+    hasher = AsyncMock()
     hasher.verify.return_value = True
     tokens = Mock()
 
@@ -84,7 +84,7 @@ async def test_register_user_success(user_kwargs):
     repo = AsyncMock()
     repo.exists_by_username.return_value = False
     repo.exists_by_email.return_value = False
-    hasher = Mock()
+    hasher = AsyncMock()
     hasher.hash.return_value = "hashed!"
 
     command = RegisterUserCommand(
@@ -172,7 +172,7 @@ async def test_reset_password_invalid_token():
     repo = AsyncMock()
     token_service = Mock()
     token_service.decode_token.side_effect = RuntimeError("decode error")
-    hasher = Mock()
+    hasher = AsyncMock()
     blacklist = AsyncMock()
     blacklist.is_blacklisted.return_value = False
 
@@ -189,7 +189,7 @@ async def test_reset_password_success(user_kwargs):
     token_service = Mock()
     token_service.decode_token.return_value = {"sub": user.id, "type": "reset_password", "exp": 999}
 
-    hasher = Mock()
+    hasher = AsyncMock()
     hasher.hash.return_value = "new-hash"
 
     blacklist = AsyncMock()
