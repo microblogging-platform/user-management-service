@@ -1,7 +1,3 @@
-import asyncio
-from unittest.mock import AsyncMock
-from uuid import uuid4
-
 import pytest
 from application.dto.user import GetUsersQuery, UpdateUserCommand
 from application.usecases.users.delete_user import DeleteUserUseCase
@@ -13,22 +9,18 @@ from domain.entities import User
 from domain.enums import Role
 from domain.exceptions import ForbiddenError, UserAlreadyExistsError, UserDoesNotExistsError
 
-
-def run(coro):
-    return asyncio.run(coro)
-
-
-def test_get_user_by_id_not_found(user_kwargs):
+@pytest.mark.asyncio
+async def test_get_user_by_id_not_found(user_kwargs):
     repo = AsyncMock()
     repo.get_by_id.return_value = None
     storage = AsyncMock()
     requester = User(**user_kwargs)
 
     with pytest.raises(UserDoesNotExistsError):
-        run(GetUserByIdUseCase(repo, storage).execute(uuid4(), requester))
+        await GetUserByIdUseCase(repo, storage).execute(uuid4(), requester)
 
-
-def test_get_user_by_id_allows_admin_and_builds_image_url(user_kwargs):
+@pytest.mark.asyncio
+async def test_get_user_by_id_allows_admin_and_builds_image_url(user_kwargs):
     target = User(**{**user_kwargs, "image_s3_path": "avatars/path.png"})
     requester = User(**{**user_kwargs, "id": uuid4(), "role": Role.ADMIN})
     repo = AsyncMock()
@@ -36,12 +28,12 @@ def test_get_user_by_id_allows_admin_and_builds_image_url(user_kwargs):
     storage = AsyncMock()
     storage.generate_presigned_get_url.return_value = "https://signed/url"
 
-    result = run(GetUserByIdUseCase(repo, storage).execute(target.id, requester))
+    result = await GetUserByIdUseCase(repo, storage).execute(target.id, requester)
 
     assert result.image_s3_path == "https://signed/url"
 
-
-def test_get_user_by_id_forbidden_for_unrelated_user(user_kwargs):
+@pytest.mark.asyncio
+async def test_get_user_by_id_forbidden_for_unrelated_user(user_kwargs):
     target = User(**user_kwargs)
     requester = User(**{**user_kwargs, "id": uuid4(), "role": Role.USER})
     repo = AsyncMock()
@@ -49,22 +41,22 @@ def test_get_user_by_id_forbidden_for_unrelated_user(user_kwargs):
     storage = AsyncMock()
 
     with pytest.raises(ForbiddenError):
-        run(GetUserByIdUseCase(repo, storage).execute(target.id, requester))
+        await GetUserByIdUseCase(repo, storage).execute(target.id, requester)
 
-
-def test_get_users_for_moderator_without_group_returns_empty(user_kwargs):
+@pytest.mark.asyncio
+async def test_get_users_for_moderator_without_group_returns_empty(user_kwargs):
     requester = User(**{**user_kwargs, "role": Role.MODERATOR, "group_id": None})
     repo = AsyncMock()
     storage = AsyncMock()
     query = GetUsersQuery(page=1, limit=10)
 
-    result = run(GetUsersUseCase(repo, storage).execute(query, requester))
+    result = await GetUsersUseCase(repo, storage).execute(query, requester)
 
     assert result.total == 0
     assert result.items == []
 
-
-def test_get_users_for_admin_success(user_kwargs):
+@pytest.mark.asyncio
+async def test_get_users_for_admin_success(user_kwargs):
     requester = User(**{**user_kwargs, "role": Role.ADMIN})
     user = User(**{**user_kwargs, "image_s3_path": "avatars/avatar.png"})
     repo = AsyncMock()
@@ -73,24 +65,24 @@ def test_get_users_for_admin_success(user_kwargs):
     storage.generate_presigned_get_url.return_value = "https://signed/avatar"
     query = GetUsersQuery(page=1, limit=30, order_by="asc")
 
-    result = run(GetUsersUseCase(repo, storage).execute(query, requester))
+    result = await GetUsersUseCase(repo, storage).execute(query, requester)
 
     assert result.total == 1
     assert result.pages == 1
     assert result.items[0].image_s3_path == "https://signed/avatar"
 
-
-def test_get_users_for_basic_user_forbidden(user_kwargs):
+@pytest.mark.asyncio
+async def test_get_users_for_basic_user_forbidden(user_kwargs):
     requester = User(**{**user_kwargs, "role": Role.USER})
     repo = AsyncMock()
     storage = AsyncMock()
     query = GetUsersQuery()
 
     with pytest.raises(ForbiddenError):
-        run(GetUsersUseCase(repo, storage).execute(query, requester))
+        await GetUsersUseCase(repo, storage).execute(query, requester)
 
-
-def test_update_user_rejects_duplicate_username(user_kwargs):
+@pytest.mark.asyncio
+async def test_update_user_rejects_duplicate_username(user_kwargs):
     user = User(**user_kwargs)
     requester = user
     repo = AsyncMock()
@@ -99,10 +91,10 @@ def test_update_user_rejects_duplicate_username(user_kwargs):
     command = UpdateUserCommand(username="taken")
 
     with pytest.raises(UserAlreadyExistsError):
-        run(UpdateUserUseCase(repo).execute(user.id, command, requester))
+        await UpdateUserUseCase(repo).execute(user.id, command, requester)
 
-
-def test_update_user_success(user_kwargs):
+@pytest.mark.asyncio
+async def test_update_user_success(user_kwargs):
     user = User(**user_kwargs)
     requester = user
     repo = AsyncMock()
@@ -111,30 +103,38 @@ def test_update_user_success(user_kwargs):
     repo.update.return_value = user
     command = UpdateUserCommand(name="Jane")
 
-    result = run(UpdateUserUseCase(repo).execute(user.id, command, requester))
+    result = await UpdateUserUseCase(repo).execute(user.id, command, requester)
 
     assert result.name == "Jane"
     repo.update.assert_awaited_once()
 
 
-def test_delete_user_use_case_returns_repository_result():
+import pytest
+from unittest.mock import AsyncMock
+from uuid import uuid4
+
+
+@pytest.mark.asyncio
+async def test_delete_user_use_case_returns_repository_result():
     repo = AsyncMock()
-    repo.delete.return_value = None
+    expected_result = "deletion_confirmed"
+    repo.delete.return_value = expected_result
 
-    result = DeleteUserUseCase(repo).execute(uuid4())
+    user_id = uuid4()
 
-    assert asyncio.iscoroutine(result)
-    run(result)
+    result = await DeleteUserUseCase(repo).execute(user_id)
 
+    assert result == expected_result
 
-def test_initiate_avatar_upload_use_case_returns_object_key(user_kwargs):
+    repo.delete.assert_awaited_once_with(user_id)
+
+@pytest.mark.asyncio
+async def test_initiate_avatar_upload_use_case_returns_object_key(user_kwargs):
     storage = AsyncMock()
     storage.generate_presigned_upload_url.return_value = "https://upload"
     user_id = user_kwargs["id"]
 
-    result = run(
-        InitiateAvatarUploadUseCase(storage).execute(user_id=user_id, filename="avatar.png", content_type="image/png")
-    )
+    result = await InitiateAvatarUploadUseCase(storage).execute(user_id=user_id, filename="avatar.png", content_type="image/png")
 
     assert result.upload_url == "https://upload"
     assert result.object_key.startswith(f"avatars/{user_id}/")
