@@ -10,6 +10,7 @@ from sqlalchemy import text
 
 def _set_test_env() -> None:
     defaults = {
+        "ENVIRONMENT": "test",
         "FRONTEND_URL": "http://frontend.test",
         "POSTGRES_USER": "postgres",
         "POSTGRES_PASSWORD": "postgres",
