@@ -18,6 +18,7 @@ class SqlAlchemyUserRepository(IUserRepository):
 
     async def create(self, user: User) -> User:
         user_model = self._mapper.to_model(user)
+        user_model.created_at = datetime.now(timezone.utc)
         self._session.add(user_model)
         await self._session.flush()
         await self._session.refresh(user_model)
@@ -65,7 +66,7 @@ class SqlAlchemyUserRepository(IUserRepository):
         user_model.username = user.username
         user_model.email = str(user.email)
         user_model.phone_number = user.phone_number
-        user_model.modified_at = user.modified_at
+        user_model.modified_at = datetime.now(timezone.utc)
         user_model.image_s3_path = user.image_s3_path
 
         await self._session.flush()

@@ -40,8 +40,6 @@ class UpdateUserUseCase(UseCase):
             if hasattr(user, key):
                 setattr(user, key, value)
 
-        user.modified_at = datetime.now(timezone.utc)
-
         updated_user = await self.user_repo.update(user)
 
         return UserDTO.model_validate(updated_user)

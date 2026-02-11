@@ -1,59 +1,52 @@
-import asyncio
-from types import SimpleNamespace
-from unittest.mock import AsyncMock, Mock
-from uuid import uuid4
-
 import pytest
+from uuid import uuid4
+from sqlalchemy import select
+
 from domain.entities import Group
 from infrastructure.db.repositories.group_repo import SqlAlchemyGroupRepository
+from infrastructure.db.models.group import GroupModel
 
+def build_group_entity(**overrides) -> Group:
+    default = {
+        "id": uuid4(),
+        "name": f"group_{uuid4().hex[:8]}"
+    }
+    default.update(overrides)
+    return Group(**default)
 
-def run(coro):
-    return asyncio.run(coro)
+@pytest.mark.asyncio(loop_scope="session")
+async def test_group_repository_crud(db_session):
+    repo = SqlAlchemyGroupRepository(db_session)
+    group = build_group_entity(name="mods")
 
-
-def test_group_repository_crud():
-    session = Mock()
-    session.flush = AsyncMock()
-    session.refresh = AsyncMock()
-    session.execute = AsyncMock()
-    session.delete = AsyncMock()
-    session.add = Mock()
-    repo = SqlAlchemyGroupRepository(session)
-    group = Group(id=uuid4(), name="mods")
-    model = SimpleNamespace(id=group.id, name="mods")
-    repo._mapper = Mock()
-    repo._mapper.to_model.return_value = model
-    repo._mapper.to_domain.side_effect = lambda obj: Group(id=obj.id, name=obj.name)
-
-    created = run(repo.create(group))
+    created = await repo.create(group)
     assert created.id == group.id
-    assert created.name == group.name
+    assert created.name == "mods"
 
-    one = Mock()
-    one.scalar_one_or_none.return_value = model
-    all_result = Mock()
-    all_result.scalars.return_value.all.return_value = [model]
-    session.execute.side_effect = [one, one, one, all_result]
+    fetched = await repo.get_by_id(group.id)
+    assert fetched is not None
+    assert fetched.name == "mods"
 
-    loaded = run(repo.get_by_id(group.id))
-    assert loaded is not None
-    assert loaded.id == group.id
-    assert loaded.name == group.name
-    updated = run(repo.update(Group(id=group.id, name="admins")))
+    group.name = "admins"
+    updated = await repo.update(group)
     assert updated.name == "admins"
-    run(repo.delete(group.id))
-    groups = run(repo.get_all())
-    assert len(groups) == 1
-    assert groups[0].id == group.id
+
+    stmt = select(GroupModel.name).where(GroupModel.id == group.id)
+    name_in_db = (await db_session.execute(stmt)).scalar()
+    assert name_in_db == "admins"
+
+    groups = await repo.get_all()
+    assert len(groups) >= 1
+    assert any(g.id == group.id for g in groups)
+
+    await repo.delete(group.id)
+    assert await repo.get_by_id(group.id) is None
 
 
-def test_group_repository_update_missing_group_raises():
-    session = AsyncMock()
-    repo = SqlAlchemyGroupRepository(session)
-    result = Mock()
-    result.scalar_one_or_none.return_value = None
-    session.execute.return_value = result
+@pytest.mark.asyncio(loop_scope="session")
+async def test_group_repository_update_missing_group_raises(db_session):
+    repo = SqlAlchemyGroupRepository(db_session)
+    missing_group = build_group_entity(name="missing")
 
     with pytest.raises(ValueError):
-        run(repo.update(Group(id=uuid4(), name="missing")))
+        await repo.update(missing_group)
