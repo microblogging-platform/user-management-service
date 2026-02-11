@@ -8,7 +8,6 @@ from domain.exceptions import (
     InvalidCredentialsError,
     InvalidTokenError,
     UserAlreadyExistsError,
-    InvalidTokenError,
 )
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -26,7 +25,6 @@ from presentation.api.v1.schemas.auth import (
     ResetPasswordConfirmRequest,
     SignupRequest,
     TokenResponse,
-    RefreshTokenRequest,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 

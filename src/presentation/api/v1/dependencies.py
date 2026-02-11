@@ -1,10 +1,6 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi.security import OAuth2PasswordBearer
-from redis.asyncio import Redis
-from starlette import status
-
 from application.usecases.auth.login_user import LoginUserUseCase
 from application.usecases.auth.refresh_token import RefreshTokenUseCase
 from application.usecases.auth.register_user import RegisterUserUseCase
@@ -22,9 +18,6 @@ from domain.interfaces.repositories import IGroupRepository, IUserRepository
 from domain.interfaces.security import IPasswordHasher, ITokenService
 from domain.interfaces.services.blacklist import ITokenBlacklistService
 from domain.interfaces.services.message_broker import IMessageBroker
-from fastapi import Depends, HTTPException
-
-from domain.interfaces.services.blacklist import ITokenBlacklistService
 from domain.interfaces.services.storage import IStorageService
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
@@ -38,10 +31,8 @@ from infrastructure.db.repositories import (
 )
 from infrastructure.security import Argon2Hasher
 from infrastructure.security.jwt_service import PyJWTService
-from infrastructure.services.redis_blacklist import RedisTokenBlacklistService
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from infrastructure.security.redis_blacklist import RedisTokenBlacklistService
+from infrastructure.services.redis_blacklist import RedisTokenBlacklistService
 from infrastructure.services.s3_service import S3Service
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
