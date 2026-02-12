@@ -1,6 +1,9 @@
 from uuid import uuid4
+import os
+
 import pytest
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.pool import NullPool
 from testcontainers.postgres import PostgresContainer
 from infrastructure.db.base import Base
 from infrastructure.db.models import UserModel, GroupModel
@@ -8,6 +11,8 @@ from infrastructure.db.models import UserModel, GroupModel
 
 @pytest.fixture(scope="session")
 def postgres_container():
+    os.environ.setdefault("TESTCONTAINERS_RYUK_DISABLED", "true")
+
     postgres = PostgresContainer("postgres:16-alpine")
     postgres.start()
 
@@ -22,7 +27,7 @@ async def db_engine(postgres_container):
 
     async_url = driver_url.replace("psycopg2", "asyncpg")
 
-    engine = create_async_engine(async_url, echo=False)
+    engine = create_async_engine(async_url, echo=False, poolclass=NullPool)
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -34,23 +39,21 @@ async def db_engine(postgres_container):
 
 @pytest.fixture(scope="function")
 async def db_session(db_engine):
-
-    connection = await db_engine.connect()
-    transaction = await connection.begin()
-
     session_factory = async_sessionmaker(
-        bind=connection,
+        bind=db_engine,
         class_=AsyncSession,
         expire_on_commit=False,
         autoflush=False,
     )
-    session = session_factory()
 
-    yield session
-
-    await session.close()
-    await transaction.rollback()
-    await connection.close()
+    async with session_factory() as session:
+        try:
+            yield session
+        finally:
+            try:
+                await session.rollback()
+            except Exception:
+                pass
 
 
 @pytest.fixture
