@@ -37,6 +37,15 @@ async def db_engine(postgres_container):
     await engine.dispose()
 
 
+@pytest.fixture(autouse=True)
+async def reset_db(db_engine):
+    yield
+
+    async with db_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
+
+
 @pytest.fixture(scope="function")
 async def db_session(db_engine):
     session_factory = async_sessionmaker(
