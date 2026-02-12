@@ -1,3 +1,6 @@
+[tool.poetry]
+package-mode = false
+
 [project]
 name = "user-management-service"
 version = "0.1.0"
@@ -42,6 +45,7 @@ dev = [
 [tool.pytest.ini_options]
 addopts = "-v -s"
 testpaths = ["tests"]
+pythonpath = ["src"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"
 env = [
