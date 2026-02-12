@@ -24,7 +24,7 @@ class Settings(BaseSettings):
 
     @property
     def test_database_url(self) -> str:
-        return f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_test_db}"
+        return f"postgresql+asyncpg://postgres:postgres@{self.postgres_host}:{self.postgres_port}/{self.postgres_test_db}"
 
     # Redis
     redis_host: str
