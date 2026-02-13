@@ -1,12 +1,11 @@
-from uuid import uuid4
 import os
+from uuid import uuid4
 
 import pytest
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from infrastructure.db.base import Base
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 from testcontainers.postgres import PostgresContainer
-from infrastructure.db import Base
-from infrastructure.db.models import UserModel, GroupModel
 
 
 @pytest.fixture(scope="session")

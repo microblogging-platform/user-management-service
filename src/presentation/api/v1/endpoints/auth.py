@@ -134,7 +134,7 @@ async def request_password_reset(
         await session.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An error occurred while processing your request."
-        )
+        ) from e
 
 
 @router.post("/reset-password", status_code=status.HTTP_200_OK)
@@ -150,8 +150,8 @@ async def reset_password(
 
     except (InvalidTokenError, InvalidCredentialsError) as e:
         await session.rollback()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
     except Exception as e:
         logging.error(f"Error resetting password: {e}", exc_info=True)
         await session.rollback()
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to reset password")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to reset password") from e

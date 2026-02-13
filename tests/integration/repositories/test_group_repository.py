@@ -1,18 +1,17 @@
-import pytest
 from uuid import uuid4
+
+import pytest
+from domain.entities import Group
+from infrastructure.db.models.group import GroupModel
+from infrastructure.db.repositories.group_repo import SqlAlchemyGroupRepository
 from sqlalchemy import select
 
-from domain.entities import Group
-from infrastructure.db.repositories.group_repo import SqlAlchemyGroupRepository
-from infrastructure.db.models.group import GroupModel
 
 def build_group_entity(**overrides) -> Group:
-    default = {
-        "id": uuid4(),
-        "name": f"group_{uuid4().hex[:8]}"
-    }
+    default = {"id": uuid4(), "name": f"group_{uuid4().hex[:8]}"}
     default.update(overrides)
     return Group(**default)
+
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_group_repository_crud(db_session):

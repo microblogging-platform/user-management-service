@@ -2,12 +2,11 @@ from typing import AsyncIterator
 from uuid import uuid4
 
 import pytest
-from httpx import ASGITransport, AsyncClient
-
 from domain.entities import User
 from domain.enums import Role
 from domain.interfaces.services.storage import IStorageService
 from fastapi import FastAPI
+from httpx import ASGITransport, AsyncClient
 from infrastructure.db import get_db_session
 from infrastructure.db.repositories import SqlAlchemyUserRepository
 from presentation.api.v1 import dependencies as deps
@@ -22,9 +21,7 @@ class FakeStorageService(IStorageService):
     async def delete_file(self, file_path: str) -> None:
         return None
 
-    async def generate_presigned_upload_url(
-        self, object_key: str, content_type: str, expires_in: int = 3600
-    ) -> str:
+    async def generate_presigned_upload_url(self, object_key: str, content_type: str, expires_in: int = 3600) -> str:
         return f"https://storage.test/upload/{object_key}"
 
     async def generate_presigned_get_url(self, object_key: str, expires_in: int = 3600) -> str | None:
@@ -104,7 +101,9 @@ async def test_get_user_by_id_allows_admin(client: AsyncClient, persisted_user: 
 
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_get_users_returns_paginated_list(client: AsyncClient, db_session: AsyncSession, persisted_user: User) -> None:
+async def test_get_users_returns_paginated_list(
+    client: AsyncClient, db_session: AsyncSession, persisted_user: User
+) -> None:
     repo = SqlAlchemyUserRepository(db_session)
     other_user = User(
         name="Alice",
@@ -154,8 +153,6 @@ async def test_avatar_upload_url_success_uses_storage_service(client: AsyncClien
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_confirm_avatar_upload_rejects_invalid_object_key(client: AsyncClient) -> None:
-    response = await client.post(
-        "/api/v1/users/me/avatar/confirm?object_key=avatars/another-user/file.png"
-    )
+    response = await client.post("/api/v1/users/me/avatar/confirm?object_key=avatars/another-user/file.png")
 
     assert response.status_code == 403

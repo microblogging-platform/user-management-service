@@ -73,15 +73,15 @@ async def update_me(
     except UserAlreadyExistsError as e:
         await session.rollback()
         logging.error(f"Error updating profile: {e}", exc_info=True)
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=e.message)
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=e.message) from e
     except DomainError as e:
         await session.rollback()
         logging.error(f"Error updating profile: {e}", exc_info=True)
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message) from e
     except Exception as e:
         await session.rollback()
         logging.error(f"Error updating profile: {e}", exc_info=True)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update profile")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update profile") from e
 
 
 @router.delete("/me", status_code=status.HTTP_200_OK)
@@ -95,9 +95,9 @@ async def delete_me(
         await use_case.execute(user_id)
         await session.commit()
 
-    except Exception:
+    except Exception as e:
         await session.rollback()
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to delete user")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to delete user") from e
 
 
 @router.get("/{user_id}", response_model=UserResponse, status_code=status.HTTP_200_OK)
@@ -112,9 +112,9 @@ async def get_user_by_id(
         return UserResponse.model_validate(user_dto)
 
     except ForbiddenError as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=e.message)
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=e.message) from e
     except UserDoesNotExistsError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message) from e
 
 
 @router.patch("/{user_id}", response_model=UserResponse, status_code=status.HTTP_200_OK)
@@ -135,10 +135,10 @@ async def update_user_by_id(
 
     except ForbiddenError as e:
         await session.rollback()
-        raise HTTPException(status_code=403, detail=e.message)
+        raise HTTPException(status_code=403, detail=e.message) from e
 
     except UserDoesNotExistsError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message) from e
 
 
 @router.get("", response_model=UsersListResponse)
@@ -157,7 +157,7 @@ async def get_users(
         return await use_case.execute(query, requester=current_user)
 
     except ForbiddenError as e:
-        raise HTTPException(status_code=403, detail=str(e))
+        raise HTTPException(status_code=403, detail=str(e)) from e
 
 
 @router.post("/me/avatar/upload-url", response_model=AvatarPresignedUrlResponse)

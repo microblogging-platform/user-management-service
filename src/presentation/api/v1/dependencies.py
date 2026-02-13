@@ -31,7 +31,6 @@ from infrastructure.db.repositories import (
 )
 from infrastructure.security import Argon2Hasher
 from infrastructure.security.jwt_service import PyJWTService
-from infrastructure.security.redis_blacklist import RedisTokenBlacklistService
 from infrastructure.services.redis_blacklist import RedisTokenBlacklistService
 from infrastructure.services.s3_service import S3Service
 from redis.asyncio import Redis
@@ -80,7 +79,7 @@ def get_current_user_id(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=e.message,
             headers={"WWW-Authenticate": "Bearer"},
-        )
+        ) from e
 
 
 async def get_current_user(

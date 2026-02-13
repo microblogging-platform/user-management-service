@@ -1,7 +1,7 @@
-import pytest
 from datetime import datetime, timezone
 from uuid import uuid4
 
+import pytest
 from domain.entities import Group, User
 from domain.enums import Role
 from domain.exceptions import DomainError, InvalidTokenError

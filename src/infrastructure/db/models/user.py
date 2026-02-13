@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 from uuid import UUID, uuid4
 
 from domain.enums import Role
@@ -8,10 +8,14 @@ from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+if TYPE_CHECKING:
+    from infrastructure.db.models import GroupModel
+
 
 def utc_now() -> datetime:
     """Return current UTC datetime for default/onupdate."""
     return datetime.now(timezone.utc)
+
 
 class UserModel(Base):
     __tablename__ = "users"
