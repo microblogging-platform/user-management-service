@@ -1,6 +1,7 @@
 import logging
 
 import aio_pika
+
 from infrastructure.config import settings
 
 _connection: aio_pika.RobustConnection | None = None

@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+
 from infrastructure.brokers.connection import close_rabbitmq, init_rabbitmq
 from infrastructure.config import settings
 from presentation.api.v1.endpoints import auth, user

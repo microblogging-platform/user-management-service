@@ -1,6 +1,10 @@
 import logging
 from typing import Annotated
 
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from application.dto.auth import LoginCommand, RegisterUserCommand
 from application.usecases.base import UseCase
 from domain.exceptions import (
@@ -9,8 +13,6 @@ from domain.exceptions import (
     InvalidTokenError,
     UserAlreadyExistsError,
 )
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
 from infrastructure.db import get_db_session
 from presentation.api.v1.dependencies import (
     get_login_use_case,
@@ -26,7 +28,6 @@ from presentation.api.v1.schemas.auth import (
     SignupRequest,
     TokenResponse,
 )
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 

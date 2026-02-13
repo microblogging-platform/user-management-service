@@ -2,11 +2,12 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Optional
 from uuid import UUID, uuid4
 
-from domain.enums import Role
-from infrastructure.db import Base
 from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from domain.enums import Role
+from infrastructure.db import Base
 
 if TYPE_CHECKING:
     from infrastructure.db.models import GroupModel

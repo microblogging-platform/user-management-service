@@ -3,6 +3,7 @@ from typing import Any, Dict
 from uuid import UUID
 
 import jwt
+
 from domain.exceptions import ExpiredTokenError, InvalidTokenError
 from domain.interfaces.security import ITokenService
 from infrastructure.config import settings

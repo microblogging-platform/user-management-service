@@ -2,6 +2,7 @@ from unittest.mock import AsyncMock
 from uuid import uuid4
 
 import pytest
+
 from application.dto.user import GetUsersQuery, UpdateUserCommand
 from application.usecases.users.delete_user import DeleteUserUseCase
 from application.usecases.users.get_user import GetUserByIdUseCase
@@ -118,6 +119,7 @@ async def test_update_user_success(user_kwargs):
 
     assert result.name == "Jane"
     repo.update.assert_awaited_once()
+
 
 @pytest.mark.asyncio
 async def test_delete_user_use_case_returns_repository_result():
