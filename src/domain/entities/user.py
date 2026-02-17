@@ -1,10 +1,9 @@
 from uuid import UUID, uuid4
 
-from pydantic import ConfigDict, EmailStr, Field
-from pydantic_extra_types.phone_numbers import PhoneNumber
-
 from domain.enums import Role
 from domain.mixins import TimestampMixin
+from pydantic import ConfigDict, EmailStr, Field
+from pydantic_extra_types.phone_numbers import PhoneNumber
 
 
 class User(TimestampMixin):

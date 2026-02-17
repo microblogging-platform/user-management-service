@@ -1,15 +1,14 @@
 from datetime import datetime, timezone
 from uuid import UUID
 
-from pydantic import EmailStr
-from pydantic_extra_types.phone_numbers import PhoneNumber
-from sqlalchemy import asc, desc, exists, func, or_, select, update
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from domain.entities import User
 from domain.interfaces.repositories import IUserRepository
 from infrastructure.db.mappers import user_mapper
 from infrastructure.db.models import UserModel
+from pydantic import EmailStr
+from pydantic_extra_types.phone_numbers import PhoneNumber
+from sqlalchemy import asc, desc, exists, func, or_, select, update
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class SqlAlchemyUserRepository(IUserRepository):

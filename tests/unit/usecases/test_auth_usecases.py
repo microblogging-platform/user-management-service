@@ -1,7 +1,6 @@
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-
 from application.dto.auth import LoginCommand, RegisterUserCommand
 from application.usecases.auth.login_user import LoginUserUseCase
 from application.usecases.auth.refresh_token import RefreshTokenUseCase

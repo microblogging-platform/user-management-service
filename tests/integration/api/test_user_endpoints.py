@@ -2,17 +2,16 @@ from typing import AsyncIterator
 from uuid import uuid4
 
 import pytest
-from fastapi import FastAPI
-from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from domain.entities import User
 from domain.enums import Role
 from domain.interfaces.services.storage import IStorageService
+from fastapi import FastAPI
+from httpx import ASGITransport, AsyncClient
 from infrastructure.db import get_db_session
 from infrastructure.db.repositories import SqlAlchemyUserRepository
 from presentation.api.v1 import dependencies as deps
 from presentation.api.v1.endpoints import user as user_endpoints
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class FakeStorageService(IStorageService):

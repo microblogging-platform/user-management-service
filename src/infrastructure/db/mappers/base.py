@@ -1,8 +1,7 @@
 from typing import Generic, Type, TypeVar
 
-from pydantic import BaseModel
-
 from infrastructure.db import Base
+from pydantic import BaseModel
 
 DomainT = TypeVar("DomainT", bound=BaseModel)
 ModelT = TypeVar("ModelT", bound=Base)

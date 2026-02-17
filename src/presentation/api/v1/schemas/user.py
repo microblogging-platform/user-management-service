@@ -1,9 +1,8 @@
 from uuid import UUID
 
+from domain.enums import Role
 from pydantic import AwareDatetime, BaseModel, ConfigDict, EmailStr
 from pydantic_extra_types.phone_numbers import PhoneNumber
-
-from domain.enums import Role
 
 
 class UpdateUserRequest(BaseModel):

@@ -2,7 +2,6 @@ from unittest.mock import AsyncMock
 from uuid import uuid4
 
 import pytest
-
 from application.dto.user import GetUsersQuery, UpdateUserCommand
 from application.usecases.users.delete_user import DeleteUserUseCase
 from application.usecases.users.get_user import GetUserByIdUseCase

@@ -1,11 +1,10 @@
 from uuid import uuid4
 
 import pytest
-from sqlalchemy import select
-
 from domain.entities import Group
 from infrastructure.db.models.group import GroupModel
 from infrastructure.db.repositories.group_repo import SqlAlchemyGroupRepository
+from sqlalchemy import select
 
 
 def build_group_entity(**overrides) -> Group:

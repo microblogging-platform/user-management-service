@@ -1,7 +1,6 @@
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-
 from infrastructure.brokers import connection
 from infrastructure.brokers.rabbitmq import RabbitMQService
 from infrastructure.db.redis import get_redis_client
