@@ -4,7 +4,6 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from ..config import settings
 
-# Для тестов используем отдельную тестовую БД, чтобы не трогать основную.
 DATABASE_URL = (
     settings.test_database_url if settings.environment.lower() == "test" else settings.database_url
 )
