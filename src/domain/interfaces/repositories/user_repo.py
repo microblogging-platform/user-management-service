@@ -8,7 +8,6 @@ from domain.entities import User
 
 
 class IUserRepository(ABC):
-
     @abstractmethod
     async def create(self, user: User) -> User:
         pass

@@ -91,7 +91,6 @@ async def delete_me(
     use_case: Annotated[UseCase, Depends(get_delete_user_use_case)],
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ):
-
     try:
         await use_case.execute(user_id)
         await session.commit()

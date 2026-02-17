@@ -13,7 +13,6 @@ class UpdateUserUseCase(UseCase):
         self.user_repo = user_repo
 
     async def execute(self, user_id: UUID, command: UpdateUserCommand, requester: User) -> UserDTO:
-
         user = await self.user_repo.get_by_id(user_id)
         if not user:
             raise DomainError("User not found")

@@ -5,7 +5,6 @@ from .base import BaseMapper
 
 
 class UserMapper(BaseMapper[User, UserModel]):
-
     def __init__(self) -> None:
         super().__init__(User, UserModel)
 

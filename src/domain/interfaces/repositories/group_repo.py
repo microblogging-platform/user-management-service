@@ -5,7 +5,6 @@ from domain.entities import Group
 
 
 class IGroupRepository(ABC):
-
     @abstractmethod
     async def create(self, group: Group) -> Group:
         pass

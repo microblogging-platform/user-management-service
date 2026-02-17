@@ -117,7 +117,6 @@ class SqlAlchemyUserRepository(IUserRepository):
         order_by: str = "asc",
         group_id: UUID | None = None,
     ) -> tuple[list[User], int]:
-
         query = select(UserModel) if group_id is None else select(UserModel).where(UserModel.group_id == group_id)
 
         if filter_by_name:
