@@ -1,12 +1,13 @@
 from typing import List, Optional
 from uuid import UUID
 
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from domain.entities import Group
 from domain.interfaces.repositories import IGroupRepository
 from infrastructure.db.mappers import group_mapper
 from infrastructure.db.models import GroupModel
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class SqlAlchemyGroupRepository(IGroupRepository):

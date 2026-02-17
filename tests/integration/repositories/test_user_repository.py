@@ -1,11 +1,12 @@
 from uuid import uuid4
 
 import pytest
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+
 from domain.entities import User
 from infrastructure.db.models.user import UserModel
 from infrastructure.db.repositories.user_repo import SqlAlchemyUserRepository
-from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
 
 
 def build_user_entity(**overrides) -> User:

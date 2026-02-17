@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from domain.entities import User
 from pydantic import EmailStr
 from pydantic_extra_types.phone_numbers import PhoneNumber
+
+from domain.entities import User
 
 
 class IUserRepository(ABC):

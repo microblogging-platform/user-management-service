@@ -3,6 +3,7 @@ import logging
 from typing import Any, Dict
 
 from aio_pika import DeliveryMode, Message, RobustConnection
+
 from domain.interfaces.services.message_broker import IMessageBroker
 
 

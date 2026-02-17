@@ -1,7 +1,8 @@
 from uuid import UUID, uuid4
 
-from domain.mixins import TimestampMixin
 from pydantic import Field
+
+from domain.mixins import TimestampMixin
 
 
 class Group(TimestampMixin):

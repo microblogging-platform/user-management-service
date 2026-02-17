@@ -2,6 +2,9 @@ import logging
 from typing import Annotated, Literal
 from uuid import UUID
 
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from application.dto.user import GetUsersQuery, UpdateUserCommand, UserDTO, UsersListResponse
 from application.usecases.base import UseCase
 from domain.entities import User
@@ -12,7 +15,6 @@ from domain.exceptions import (
     UserBlockedError,
     UserDoesNotExistsError,
 )
-from fastapi import APIRouter, Depends, HTTPException, Query, status
 from infrastructure.db import get_db_session
 from presentation.api.v1.dependencies import (
     get_current_user,
@@ -28,7 +30,6 @@ from presentation.api.v1.schemas.user import (
     UpdateUserRequest,
     UserResponse,
 )
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/users", tags=["users"])
 

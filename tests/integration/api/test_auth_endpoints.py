@@ -2,19 +2,20 @@ from datetime import datetime, timezone
 from typing import Any, AsyncIterator, Dict, List
 
 import pytest
+from fastapi import FastAPI
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from application.dto.auth import TokenResponse
 from domain.entities import User
 from domain.enums import Role
 from domain.interfaces.services.blacklist import ITokenBlacklistService
 from domain.interfaces.services.message_broker import IMessageBroker
-from fastapi import FastAPI
-from httpx import ASGITransport, AsyncClient
 from infrastructure.db import get_db_session
 from infrastructure.db.repositories import SqlAlchemyUserRepository
 from infrastructure.security.jwt_service import PyJWTService
 from presentation.api.v1 import dependencies as deps
 from presentation.api.v1.endpoints import auth
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class InMemoryTokenBlacklistService(ITokenBlacklistService):
