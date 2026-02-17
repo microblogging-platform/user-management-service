@@ -191,7 +191,6 @@ async def test_request_password_reset_publishes_message(
 
     assert response.status_code == 200
     assert "reset link has been sent" in response.json()["detail"]
-    # проверяем, что что-то было отправлено в брокер
     assert len(broker.published) >= 1
 
 

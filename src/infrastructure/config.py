@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     environment: str = "development"
     log_level: str = "INFO"
     app_name: str = "user-management-service"
+    frontend_url: str = "http://localhost:3000"
 
     frontend_url: str
 
@@ -52,13 +53,10 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int
     refresh_token_expire_minutes: int
 
-    password_reset_token_expire_minutes: int
-
-    # AWS S3
-    aws_access_key_id: str
-    aws_secret_access_key: str
-    aws_region: str
-    s3_bucket_name: str
+    aws_access_key_id: str = ""
+    aws_secret_access_key: str = ""
+    aws_region: str = "us-east-1"
+    s3_bucket_name: str = ""
 
     model_config = SettingsConfigDict(
         env_file=str(Path(__file__).parent.parent.parent / ".env"),
