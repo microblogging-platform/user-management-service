@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.pool import NullPool
 from testcontainers.postgres import PostgresContainer
-from infrastructure.db.base import Base
+from infrastructure.db import Base
 from infrastructure.db.models import UserModel, GroupModel
 
 

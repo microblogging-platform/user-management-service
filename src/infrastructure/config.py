@@ -52,6 +52,7 @@ class Settings(BaseSettings):
     jwt_algorithm: str
     access_token_expire_minutes: int
     refresh_token_expire_minutes: int
+    password_reset_token_expire_minutes: int = 60
 
     aws_access_key_id: str = ""
     aws_secret_access_key: str = ""

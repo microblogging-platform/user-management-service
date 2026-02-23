@@ -14,7 +14,7 @@ from infrastructure.db import get_db_session
 from infrastructure.db.repositories import SqlAlchemyUserRepository
 from infrastructure.security.jwt_service import PyJWTService
 from presentation.api.v1 import dependencies as deps
-from presentation.api.v1.endpoints import auth
+from main import create_app
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -41,15 +41,15 @@ class FakeMessageBroker(IMessageBroker):
 
 
 @pytest.fixture
-async def persisted_user(db_session: AsyncSession) -> User:
+async def persisted_user(db_session: AsyncSession, faker) -> User:
     repo = SqlAlchemyUserRepository(db_session)
     user = User(
-        name="John",
-        surname="Doe",
-        username="johnny",
-        password_hash="secret123",
-        email="john@example.com",
-        phone_number="+14155552671",
+        name=faker.first_name(),
+        surname=faker.last_name(),
+        username=faker.user_name(),
+        password_hash=faker.password(),
+        email=faker.email(),
+        phone_number=faker.phone_number(),
         role=Role.USER,
         image_s3_path="",
         is_blocked=False,
@@ -60,8 +60,7 @@ async def persisted_user(db_session: AsyncSession) -> User:
 
 @pytest.fixture
 async def app(db_session: AsyncSession) -> FastAPI:
-    app = FastAPI()
-    app.include_router(auth.router, prefix="/api/v1")
+    app = create_app()
 
     async def override_db_session() -> AsyncIterator[AsyncSession]:
         yield db_session
