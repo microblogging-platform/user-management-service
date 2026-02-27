@@ -121,9 +121,6 @@ async def test_update_user_success(user_kwargs):
     repo.update.assert_awaited_once()
 
 
-
-
-
 @pytest.mark.asyncio
 async def test_delete_user_use_case_returns_repository_result():
     repo = AsyncMock()

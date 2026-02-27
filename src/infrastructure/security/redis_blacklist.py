@@ -1,4 +1,5 @@
 from redis.asyncio import Redis
+
 from domain.interfaces.services.blacklist import ITokenBlacklistService
 
 

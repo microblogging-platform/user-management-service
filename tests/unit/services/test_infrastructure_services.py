@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import AsyncMock, Mock
+
+import pytest
 
 from infrastructure.brokers import connection
 from infrastructure.brokers.rabbitmq import RabbitMQService

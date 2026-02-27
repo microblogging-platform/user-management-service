@@ -1,13 +1,14 @@
 from unittest.mock import AsyncMock, Mock
 from uuid import uuid4
 
-import main
 import pytest
+from fastapi import HTTPException
+from fastapi.testclient import TestClient
+
+import main
 from domain.entities import User
 from domain.enums import Role
 from domain.exceptions import InvalidTokenError
-from fastapi import HTTPException
-from fastapi.testclient import TestClient
 from main import create_app
 from presentation.api.v1.dependencies import get_current_user, get_current_user_id
 

@@ -14,9 +14,8 @@ from domain.interfaces.services.message_broker import IMessageBroker
 from infrastructure.db import get_db_session
 from infrastructure.db.repositories import SqlAlchemyUserRepository
 from infrastructure.security.jwt_service import PyJWTService
-from presentation.api.v1 import dependencies as deps
 from main import create_app
-from presentation.api.v1.endpoints import auth
+from presentation.api.v1 import dependencies as deps
 
 
 class InMemoryTokenBlacklistService(ITokenBlacklistService):
@@ -169,9 +168,7 @@ async def test_refresh_token_invalid_returns_401(client: AsyncClient) -> None:
 
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_request_password_reset_publishes_message(
-    client: AsyncClient, app: FastAPI
-) -> None:
+async def test_request_password_reset_publishes_message(client: AsyncClient, app: FastAPI) -> None:
     signup_payload = {
         "name": "John",
         "surname": "Doe",
@@ -185,9 +182,7 @@ async def test_request_password_reset_publishes_message(
 
     broker: FakeMessageBroker = app.dependency_overrides[deps.get_message_broker]()  # type: ignore[assignment]
 
-    response = await client.post(
-        "/api/v1/auth/request-password-reset", json={"login": "john@example.com"}
-    )
+    response = await client.post("/api/v1/auth/request-password-reset", json={"login": "john@example.com"})
 
     assert response.status_code == 200
     assert "reset link has been sent" in response.json()["detail"]
@@ -195,9 +190,7 @@ async def test_request_password_reset_publishes_message(
 
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_reset_password_allows_login_with_new_password(
-    client: AsyncClient, db_session: AsyncSession
-) -> None:
+async def test_reset_password_allows_login_with_new_password(client: AsyncClient, db_session: AsyncSession) -> None:
     signup_payload = {
         "name": "John",
         "surname": "Doe",

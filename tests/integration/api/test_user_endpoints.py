@@ -22,9 +22,7 @@ class FakeStorageService(IStorageService):
     async def delete_file(self, file_path: str) -> None:
         return None
 
-    async def generate_presigned_upload_url(
-        self, object_key: str, content_type: str, expires_in: int = 3600
-    ) -> str:
+    async def generate_presigned_upload_url(self, object_key: str, content_type: str, expires_in: int = 3600) -> str:
         return f"https://storage.test/upload/{object_key}"
 
     async def generate_presigned_get_url(self, object_key: str, expires_in: int = 3600) -> str | None:
@@ -156,8 +154,6 @@ async def test_avatar_upload_url_success_uses_storage_service(client: AsyncClien
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_confirm_avatar_upload_rejects_invalid_object_key(client: AsyncClient) -> None:
-    response = await client.post(
-        "/api/v1/users/me/avatar/confirm?object_key=avatars/another-user/file.png"
-    )
+    response = await client.post("/api/v1/users/me/avatar/confirm?object_key=avatars/another-user/file.png")
 
     assert response.status_code == 403

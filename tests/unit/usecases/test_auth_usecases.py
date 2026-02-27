@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import AsyncMock, Mock
+
+import pytest
 
 from application.dto.auth import LoginCommand, RegisterUserCommand
 from application.usecases.auth.login_user import LoginUserUseCase
@@ -23,9 +24,7 @@ async def test_login_user_success(user_kwargs):
     tokens.create_access_token.return_value = "access"
     tokens.create_refresh_token.return_value = "refresh"
 
-    result = await LoginUserUseCase(repo, hasher, tokens).execute(
-        LoginCommand(login="johnny", password="secret")
-    )
+    result = await LoginUserUseCase(repo, hasher, tokens).execute(LoginCommand(login="johnny", password="secret"))
 
     assert result.access_token == "access"
     assert result.refresh_token == "refresh"
@@ -39,9 +38,7 @@ async def test_login_user_invalid_login():
     tokens = Mock()
 
     with pytest.raises(InvalidCredentialsError):
-        await LoginUserUseCase(repo, hasher, tokens).execute(
-            LoginCommand(login="missing", password="secret")
-        )
+        await LoginUserUseCase(repo, hasher, tokens).execute(LoginCommand(login="missing", password="secret"))
 
 
 @pytest.mark.asyncio
@@ -54,9 +51,7 @@ async def test_login_user_blocked(user_kwargs):
     tokens = Mock()
 
     with pytest.raises(UserBlockedError):
-        await LoginUserUseCase(repo, hasher, tokens).execute(
-            LoginCommand(login="johnny", password="secret")
-        )
+        await LoginUserUseCase(repo, hasher, tokens).execute(LoginCommand(login="johnny", password="secret"))
 
 
 @pytest.mark.asyncio
