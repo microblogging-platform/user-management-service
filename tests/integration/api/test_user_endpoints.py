@@ -2,17 +2,17 @@ from typing import AsyncIterator
 from uuid import uuid4
 
 import pytest
+from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from domain.entities import User
 from domain.enums import Role
 from domain.interfaces.services.storage import IStorageService
-from fastapi import FastAPI
 from infrastructure.db import get_db_session
 from infrastructure.db.repositories import SqlAlchemyUserRepository
 from presentation.api.v1 import dependencies as deps
 from presentation.api.v1.endpoints import user as user_endpoints
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class FakeStorageService(IStorageService):
@@ -104,7 +104,9 @@ async def test_get_user_by_id_allows_admin(client: AsyncClient, persisted_user: 
 
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_get_users_returns_paginated_list(client: AsyncClient, db_session: AsyncSession, persisted_user: User) -> None:
+async def test_get_users_returns_paginated_list(
+    client: AsyncClient, db_session: AsyncSession, persisted_user: User
+) -> None:
     repo = SqlAlchemyUserRepository(db_session)
     other_user = User(
         name="Alice",

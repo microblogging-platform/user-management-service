@@ -5,8 +5,7 @@ from infrastructure.brokers import connection
 from infrastructure.brokers.rabbitmq import RabbitMQService
 from infrastructure.db.redis import get_redis_client
 from infrastructure.db.session import get_db_session
-from infrastructure.security.redis_blacklist import RedisTokenBlacklistService as SecurityRedisBlacklist
-from infrastructure.services.redis_blacklist import RedisTokenBlacklistService as ServicesRedisBlacklist
+from infrastructure.services.redis_blacklist import RedisTokenBlacklistService
 from infrastructure.services.s3_service import S3Service
 
 
@@ -62,17 +61,14 @@ async def test_connection_lifecycle(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_redis_blacklist_services():
+async def test_redis_blacklist_service():
     redis = AsyncMock()
     redis.exists.return_value = 1
 
-    security_service = SecurityRedisBlacklist(redis)
-    services_service = ServicesRedisBlacklist(redis)
+    services_service = RedisTokenBlacklistService(redis)
 
-    await security_service.blacklist_token("token-a", 123)
     await services_service.blacklist_token("token-b", 456)
 
-    assert await security_service.is_blacklisted("token-a") is True
     assert await services_service.is_blacklisted("token-b") is True
 
 

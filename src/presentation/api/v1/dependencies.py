@@ -1,6 +1,12 @@
 from typing import Annotated
 from uuid import UUID
 
+from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
+from redis.asyncio import Redis
+from sqlalchemy.ext.asyncio import AsyncSession
+from starlette import status
+
 from application.usecases.auth.login_user import LoginUserUseCase
 from application.usecases.auth.refresh_token import RefreshTokenUseCase
 from application.usecases.auth.register_user import RegisterUserUseCase
@@ -19,8 +25,6 @@ from domain.interfaces.security import IPasswordHasher, ITokenService
 from domain.interfaces.services.blacklist import ITokenBlacklistService
 from domain.interfaces.services.message_broker import IMessageBroker
 from domain.interfaces.services.storage import IStorageService
-from fastapi import Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
 from infrastructure.brokers.connection import get_rabbitmq_connection
 from infrastructure.brokers.rabbitmq import RabbitMQService
 from infrastructure.db import get_db_session
@@ -31,12 +35,8 @@ from infrastructure.db.repositories import (
 )
 from infrastructure.security import Argon2Hasher
 from infrastructure.security.jwt_service import PyJWTService
-from infrastructure.security.redis_blacklist import RedisTokenBlacklistService
 from infrastructure.services.redis_blacklist import RedisTokenBlacklistService
 from infrastructure.services.s3_service import S3Service
-from redis.asyncio import Redis
-from sqlalchemy.ext.asyncio import AsyncSession
-from starlette import status
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/login")
 
@@ -80,7 +80,7 @@ def get_current_user_id(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=e.message,
             headers={"WWW-Authenticate": "Bearer"},
-        )
+        ) from e
 
 
 async def get_current_user(

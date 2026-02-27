@@ -1,14 +1,15 @@
 from datetime import datetime, timezone
 from uuid import UUID
 
-from domain.entities import User
-from domain.interfaces.repositories import IUserRepository
-from infrastructure.db.mappers import user_mapper
-from infrastructure.db.models import UserModel
 from pydantic import EmailStr
 from pydantic_extra_types.phone_numbers import PhoneNumber
 from sqlalchemy import asc, desc, exists, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from domain.entities import User
+from domain.interfaces.repositories import IUserRepository
+from infrastructure.db.mappers import user_mapper
+from infrastructure.db.models import UserModel
 
 
 class SqlAlchemyUserRepository(IUserRepository):
@@ -116,7 +117,6 @@ class SqlAlchemyUserRepository(IUserRepository):
         order_by: str = "asc",
         group_id: UUID | None = None,
     ) -> tuple[list[User], int]:
-
         query = select(UserModel) if group_id is None else select(UserModel).where(UserModel.group_id == group_id)
 
         if filter_by_name:

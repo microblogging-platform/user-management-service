@@ -1,14 +1,14 @@
 from typing import Generic, Type, TypeVar
 
-from infrastructure.db import Base
 from pydantic import BaseModel
+
+from infrastructure.db import Base
 
 DomainT = TypeVar("DomainT", bound=BaseModel)
 ModelT = TypeVar("ModelT", bound=Base)
 
 
 class BaseMapper(Generic[DomainT, ModelT]):
-
     def __init__(self, domain_type: Type[DomainT], model_type: Type[ModelT]) -> None:
         self._domain_type = domain_type
         self._model_type = model_type

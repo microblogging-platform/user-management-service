@@ -8,6 +8,8 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+from infrastructure.db.base import Base
+
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from infrastructure import settings
@@ -21,7 +23,6 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-from infrastructure.db.base import Base
 
 # add your model's MetaData object here
 # for 'autogenerate' support

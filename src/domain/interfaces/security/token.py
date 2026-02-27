@@ -4,7 +4,6 @@ from uuid import UUID
 
 
 class ITokenService(ABC):
-
     @abstractmethod
     def create_access_token(self, data: dict, expires_delta: int | None = None) -> str:
         pass

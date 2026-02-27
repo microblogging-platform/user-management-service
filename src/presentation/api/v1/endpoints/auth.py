@@ -1,6 +1,10 @@
 import logging
 from typing import Annotated
 
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from application.dto.auth import LoginCommand, RegisterUserCommand
 from application.usecases.base import UseCase
 from domain.exceptions import (
@@ -9,8 +13,6 @@ from domain.exceptions import (
     InvalidTokenError,
     UserAlreadyExistsError,
 )
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
 from infrastructure.db import get_db_session
 from presentation.api.v1.dependencies import (
     get_login_use_case,
@@ -26,7 +28,6 @@ from presentation.api.v1.schemas.auth import (
     SignupRequest,
     TokenResponse,
 )
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -134,7 +135,7 @@ async def request_password_reset(
         await session.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An error occurred while processing your request."
-        )
+        ) from e
 
 
 @router.post("/reset-password", status_code=status.HTTP_200_OK)
@@ -150,8 +151,8 @@ async def reset_password(
 
     except (InvalidTokenError, InvalidCredentialsError) as e:
         await session.rollback()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
     except Exception as e:
         logging.error(f"Error resetting password: {e}", exc_info=True)
         await session.rollback()
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to reset password")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to reset password") from e

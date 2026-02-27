@@ -1,3 +1,6 @@
+[tool.poetry]
+package-mode = false
+
 [project]
 name = "user-management-service"
 version = "0.1.0"
@@ -29,19 +32,21 @@ dependencies = [
 ]
 
 
-[dependency-groups]
-dev = [
-    "pytest (>=9.0.2,<10.0.0)",
-    "pytest-cov (>=7.0.0,<8.0.0)",
-    "httpx (>=0.28.1,<0.29.0)",
-    "pytest-asyncio (>=1.3.0,<2.0.0)",
-    "pytest-env (>=1.3.2,<2.0.0)",
-    "testcontainers (>=4.14.1,<5.0.0)",
-]
+[tool.poetry.group.dev.dependencies]
+pytest = ">=9.0.2,<10.0.0"
+pytest-cov = ">=7.0.0,<8.0.0"
+httpx = ">=0.28.1,<0.29.0"
+pytest-asyncio = ">=1.3.0,<2.0.0"
+pytest-env = ">=1.3.2,<2.0.0"
+testcontainers = ">=4.14.1,<5.0.0"
+ruff = ">=0.14.14,<0.15.0"
+black = ">=26.1.0,<27.0.0"
+mypy = ">=1.19.1,<2.0.0"
 
 [tool.pytest.ini_options]
 addopts = "-v -s"
 testpaths = ["tests"]
+pythonpath = ["src"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"
 env = [
@@ -60,3 +65,20 @@ omit = [
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 120
+target-version = ['py312']
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true

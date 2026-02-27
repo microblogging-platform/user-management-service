@@ -20,8 +20,8 @@ class RefreshTokenUseCase(UseCase):
 
         try:
             payload = self.token_service.decode_token(refresh_token)
-        except Exception:
-            raise InvalidTokenError("Invalid refresh token")
+        except Exception as e:
+            raise InvalidTokenError("Invalid refresh token") from e
 
         if payload.get("type") != "refresh":
             raise InvalidTokenError("Token is not a refresh token")

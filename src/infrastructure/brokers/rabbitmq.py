@@ -3,6 +3,7 @@ import logging
 from typing import Any, Dict
 
 from aio_pika import DeliveryMode, Message, RobustConnection
+
 from domain.interfaces.services.message_broker import IMessageBroker
 
 
@@ -13,7 +14,7 @@ class RabbitMQService(IMessageBroker):
     async def publish(self, queue_name: str, message: Dict[str, Any]) -> None:
         try:
             async with self.connection.channel() as channel:
-                queue = await channel.declare_queue(queue_name, durable=True)
+                await channel.declare_queue(queue_name, durable=True)
 
                 await channel.default_exchange.publish(
                     Message(

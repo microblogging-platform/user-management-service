@@ -3,6 +3,7 @@ from uuid import uuid4
 
 import aioboto3
 from botocore.exceptions import ClientError
+
 from domain.interfaces.services.storage import IStorageService
 from infrastructure.config import settings
 

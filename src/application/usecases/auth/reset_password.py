@@ -24,8 +24,8 @@ class ResetPasswordUseCase(UseCase):
 
         try:
             payload = self.token_service.decode_token(token)
-        except Exception:
-            raise InvalidTokenError("Invalid or expired token")
+        except Exception as e:
+            raise InvalidTokenError("Invalid or expired token") from e
 
         if payload.get("type") != "reset_password":
             raise InvalidTokenError("Token is not a password reset token")

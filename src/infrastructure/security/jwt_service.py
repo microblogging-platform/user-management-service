@@ -3,6 +3,7 @@ from typing import Any, Dict
 from uuid import UUID
 
 import jwt
+
 from domain.exceptions import ExpiredTokenError, InvalidTokenError
 from domain.interfaces.security import ITokenService
 from infrastructure.config import settings
@@ -52,10 +53,10 @@ class PyJWTService(ITokenService):
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
             return payload
 
-        except jwt.ExpiredSignatureError:
-            raise ExpiredTokenError("Token has expired")
+        except jwt.ExpiredSignatureError as e:
+            raise ExpiredTokenError("Token has expired") from e
         except jwt.PyJWTError as e:
-            raise InvalidTokenError(f"Could not validate credentials: {str(e)}")
+            raise InvalidTokenError(f"Could not validate credentials: {str(e)}") from e
 
     def get_user_id_from_token(self, token: str, expected_type: str = "access") -> UUID:
         payload = self.decode_token(token)

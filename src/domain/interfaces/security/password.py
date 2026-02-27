@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 
 
 class IPasswordHasher(ABC):
-
     @abstractmethod
     async def hash(self, password: str) -> str:
         pass
