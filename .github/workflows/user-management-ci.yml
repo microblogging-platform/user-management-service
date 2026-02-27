@@ -1,0 +1,107 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: ["main", "dev"]
+  pull_request:
+    branches: ["main", "dev"]
+
+env:
+  PYTHON_VERSION: "3.12"
+  POETRY_VERSION: "2.0.0"
+  WORKING_DIRECTORY: .
+  DOCKER_IMAGE_NAME: user-management-service
+
+jobs:
+  # ================================================================================
+  # JOB 1: Linters
+  # =================================================================================
+  lint:
+    name: 🧹 Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Lint with Ruff
+        uses: chartboost/ruff-action@v1
+        with:
+          src: ${{ env.WORKING_DIRECTORY }}
+
+      - name: Check formatting with Ruff
+        uses: chartboost/ruff-action@v1
+        with:
+          src: ${{ env.WORKING_DIRECTORY }}
+          args: format --check
+
+  # =================================================================================
+  # JOB 2: TESTING
+  # =================================================================================
+  tests:
+    name: 🧪 Test
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.WORKING_DIRECTORY }}/.venv
+          key: venv-${{ runner.os }}-${{ hashFiles(format('{0}/poetry.lock', env.WORKING_DIRECTORY)) }}
+
+      - name: Install Dependencies
+        run: poetry install --with dev --no-interaction
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+
+
+      - name: Run Pytest
+        run: poetry run pytest
+
+  # =================================================================================
+  # JOB 3: DOCKER BUILD
+  # =================================================================================
+  build:
+    name: 🐳 Build
+    runs-on: ubuntu-latest
+    needs: tests
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ env.WORKING_DIRECTORY }}
+          file: ${{ env.WORKING_DIRECTORY }}/Dockerfile
+          push: false
+          tags: ${{ env.DOCKER_IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
