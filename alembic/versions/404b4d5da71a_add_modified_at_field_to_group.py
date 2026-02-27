@@ -19,7 +19,6 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    # Добавляем новое поле modified_at в таблицу groups
     op.add_column(
         "groups",
         sa.Column(
@@ -29,12 +28,10 @@ def upgrade() -> None:
             server_default=sa.func.now(),
         ),
     )
-    # Опционально: убираем server_default, если он не нужен на уровне БД
     op.alter_column("groups", "modified_at", server_default=None)
 
 
 def downgrade() -> None:
     """Downgrade schema."""
-    # Удаляем поле modified_at из таблицы groups
     op.drop_column("groups", "modified_at")
 
