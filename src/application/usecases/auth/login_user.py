@@ -28,7 +28,9 @@ class LoginUserUseCase(UseCase):
         if user.is_blocked:
             raise UserBlockedError("Your account has been blocked.")
 
-        access_token = self.token_service.create_access_token(data={"sub": str(user.id), "role": user.role.value, "group_id": user.group_id})
+        access_token = self.token_service.create_access_token(
+            data={"sub": str(user.id), "role": user.role.value, "group_id": user.group_id}
+        )
 
         refresh_token = self.token_service.create_refresh_token(data={"sub": str(user.id)})
 
