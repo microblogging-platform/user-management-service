@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: microblogging-postgres
+    container_name: user-management-postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -18,9 +18,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: user_management_service
+    container_name: user-management-service
     ports:
-      - "8000:8000"
+      - "8001:8000"
     environment:
       - POSTGRES_HOST=${POSTGRES_HOST}
       - POSTGRES_PORT=5432
@@ -36,7 +36,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: microblogging-redis
+    container_name: user-management-redis
     ports:
       - "${REDIS_PORT}:6379"
     volumes:
@@ -47,7 +47,7 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    container_name: microblogging-rabbitmq
+    container_name: user-management-rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}

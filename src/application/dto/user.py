@@ -25,6 +25,7 @@ class UserDTO(BaseModel):
     phone_number: PhoneNumber
     image_s3_path: str
     role: Role
+    group_id: UUID
     created_at: AwareDatetime
 
     model_config = ConfigDict(from_attributes=True)

@@ -151,6 +151,7 @@ activemq-data/
 apps/user-management-service/.env
 .envrc
 .venv
+.env
 env/
 venv/
 ENV/
