@@ -9,6 +9,7 @@ class IGroupRepository(ABC):
     async def create(self, group: Group) -> Group:
         pass
 
+
     @abstractmethod
     async def get_by_id(self, group_id: UUID) -> Group | None:
         pass

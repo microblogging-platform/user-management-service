@@ -67,3 +67,4 @@ volumes:
 
 networks:
   microblogging-network:
+    external: true
