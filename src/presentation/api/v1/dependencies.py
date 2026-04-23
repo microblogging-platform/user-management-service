@@ -15,6 +15,7 @@ from application.usecases.auth.reset_password import ResetPasswordUseCase
 from application.usecases.base import UseCase
 from application.usecases.users.delete_user import DeleteUserUseCase
 from application.usecases.users.get_user import GetUserByIdUseCase
+from application.usecases.users.get_user_avatar_info import GetUserAvatarInfoUseCase
 from application.usecases.users.get_users import GetUsersUseCase
 from application.usecases.users.initiate_avatar_upload import InitiateAvatarUploadUseCase
 from application.usecases.users.update_user import UpdateUserUseCase
@@ -158,6 +159,13 @@ def get_users_list_use_case(
     storage_service: Annotated[IStorageService, Depends(get_storage_service)],
 ) -> UseCase:
     return GetUsersUseCase(user_repo, storage_service)
+
+
+def get_user_avatar_info_use_case(
+    user_repo: Annotated[IUserRepository, Depends(get_user_repository)],
+    storage_service: Annotated[IStorageService, Depends(get_storage_service)],
+) -> UseCase:
+    return GetUserAvatarInfoUseCase(user_repo, storage_service)
 
 
 def get_initiate_avatar_upload_use_case(

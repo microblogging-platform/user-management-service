@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
 
 from infrastructure.brokers.connection import close_rabbitmq, init_rabbitmq
 from infrastructure.config import settings
@@ -19,6 +20,14 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
         title=settings.app_name,
         version="0.1.0",
+    )
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
     @app.get("/healthcheck", tags=["service"])

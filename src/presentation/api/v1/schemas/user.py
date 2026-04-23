@@ -29,6 +29,11 @@ class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class UserAvatarInfoResponse(BaseModel):
+    username: str
+    avatar_url: str | None
+
+
 class AvatarUploadRequest(BaseModel):
     filename: str
     content_type: str

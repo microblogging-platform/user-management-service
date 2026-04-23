@@ -21,6 +21,7 @@ from presentation.api.v1.dependencies import (
     get_delete_user_use_case,
     get_initiate_avatar_upload_use_case,
     get_update_user_use_case,
+    get_user_avatar_info_use_case,
     get_user_by_id_use_case,
     get_users_list_use_case,
 )
@@ -28,6 +29,7 @@ from presentation.api.v1.schemas.user import (
     AvatarPresignedUrlResponse,
     AvatarUploadRequest,
     UpdateUserRequest,
+    UserAvatarInfoResponse,
     UserResponse,
 )
 
@@ -98,6 +100,19 @@ async def delete_me(
     except Exception as e:
         await session.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to delete user") from e
+
+
+@router.get("/{user_id}/author-info", response_model=UserAvatarInfoResponse, status_code=status.HTTP_200_OK)
+async def get_user_author_info(
+    user_id: UUID,
+    _: Annotated[User, Depends(get_current_user)],
+    use_case: Annotated[UseCase, Depends(get_user_avatar_info_use_case)],
+):
+    try:
+        result = await use_case.execute(user_id=user_id)
+        return UserAvatarInfoResponse(**result)
+    except UserDoesNotExistsError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e.message) from e
 
 
 @router.get("/{user_id}", response_model=UserResponse, status_code=status.HTTP_200_OK)
